@@ -8,6 +8,8 @@ For now, the code is exploratory and may/should change a lot. It is a first try 
 
 The code under `org.apache.tomcat.jni.*` is copied as is from the tc-netty. To compile it you need to follow the instructions provided here: https://github.com/netty/netty/wiki/Forked-Tomcat-Native
 
+The code uner `io.netty.*` is copied from netty
+
 Now the owrk will be to detertmine which part of which code to use.
 
 ## Building
