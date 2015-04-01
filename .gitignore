@@ -1,3 +1,10 @@
+# Added by numa - remove generated output by ant of git
+dist/
+build/
+
+# Netbeans
+nbproject/
+
 # Eclipse project files
 .project
 .classpath
