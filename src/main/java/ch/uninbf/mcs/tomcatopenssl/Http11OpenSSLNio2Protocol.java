@@ -10,7 +10,7 @@ import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
 
 /**
- *
+ * Just for testing, it is the easiest way for starting
  * @author leo
  */
 public class Http11OpenSSLNio2Protocol extends Http11Nio2Protocol{
@@ -18,8 +18,10 @@ public class Http11OpenSSLNio2Protocol extends Http11Nio2Protocol{
     private static final Log log = LogFactory.getLog(Http11Nio2Protocol.class);
     public Http11OpenSSLNio2Protocol() {
         super();
+        // will cause trouble, now...
         getEndpoint().setSslImplementationName("ch.uninbf.mcs.tomcatopenssl.net.ssl.OpenSSLImplementation");
-        log.error("Hello world!");
+        getEndpoint().setSSLEnabled(true);
+        log.error("Hello world! I'm a test");
     }
 
     @Override
