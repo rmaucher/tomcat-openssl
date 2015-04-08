@@ -19,7 +19,7 @@ public class OpenSSLSocketFactory implements SSLUtil{
 
     @Override
     public SSLContext createSSLContext() throws Exception {
-        return new OpenSSLContext();
+        return null;
     }
 
     @Override

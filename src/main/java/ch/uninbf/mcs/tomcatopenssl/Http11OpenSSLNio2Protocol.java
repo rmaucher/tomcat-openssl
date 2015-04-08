@@ -18,7 +18,7 @@ public class Http11OpenSSLNio2Protocol extends Http11Nio2Protocol{
     private static final Log log = LogFactory.getLog(Http11Nio2Protocol.class);
     public Http11OpenSSLNio2Protocol() {
         super();
-        getEndpoint().setSslImplementationName("OpenSSL");
+        getEndpoint().setSslImplementationName("ch.uninbf.mcs.tomcatopenssl.net.ssl.OpenSSLImplementation");
         log.error("Hello world!");
     }
 
