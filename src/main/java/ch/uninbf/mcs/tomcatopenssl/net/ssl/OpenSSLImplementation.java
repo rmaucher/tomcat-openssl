@@ -29,7 +29,7 @@ public class OpenSSLImplementation extends SSLImplementation{
 
     @Override
     public SSLUtil getSSLUtil(AbstractEndpoint<?> ep) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return new OpenSSLSocketFactory();
     }
     
 }

@@ -17,4 +17,12 @@ public class OpenSSLContext{
     
     public OpenSSLContext() {
     }
+
+    OpenSSLContext() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    OpenSSLContext() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }
