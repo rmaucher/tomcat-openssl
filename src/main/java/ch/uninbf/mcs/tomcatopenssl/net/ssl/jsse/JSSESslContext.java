@@ -3,47 +3,51 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package ch.uninbf.mcs.tomcatopenssl.net.ssl;
+package ch.uninbf.mcs.tomcatopenssl.net.ssl.jsse;
 
+import ch.uninbf.mcs.tomcatopenssl.net.ssl.SslContext;
+import java.security.KeyManagementException;
+import java.security.SecureRandom;
 import javax.net.ssl.KeyManager;
-import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLParameters;
+import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSessionContext;
 import javax.net.ssl.TrustManager;
-import org.apache.tomcat.util.net.SSLUtil;
 
 /**
  *
  * @author leo
  */
-public class OpenSSLSocketFactory implements SSLUtil{
+public class JSSESslContext implements SslContext{
 
     @Override
-    public SSLContext createSSLContext() throws Exception {
-        return null;
-    }
-
-    @Override
-    public KeyManager[] getKeyManagers() throws Exception {
+    public SslContext getInstance(String protocol) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public TrustManager[] getTrustManagers() throws Exception {
+    public void init(KeyManager[] kms, TrustManager[] tms, SecureRandom sr) throws KeyManagementException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void configureSessionContext(SSLSessionContext sslSessionContext) {
+    public SSLSessionContext getServerSessionContext() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public String[] getEnableableCiphers(SSLContext context) {
+    public SSLEngine createSSLEngine() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public String[] getEnableableProtocols(SSLContext context) {
+    public SSLServerSocketFactory getServerSocketFactory() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public SSLParameters getSupportedSSLParameters() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     

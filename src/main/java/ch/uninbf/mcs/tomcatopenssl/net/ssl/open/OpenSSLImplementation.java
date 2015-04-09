@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package ch.uninbf.mcs.tomcatopenssl.net.ssl;
+package ch.uninbf.mcs.tomcatopenssl.net.ssl.open;
 
 import javax.net.ssl.SSLSession;
 import org.apache.tomcat.util.net.AbstractEndpoint;

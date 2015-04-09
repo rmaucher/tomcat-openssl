@@ -3,54 +3,63 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package ch.uninbf.mcs.tomcatopenssl.net.ssl;
+package ch.uninbf.mcs.tomcatopenssl.net.ssl.open;
 
-import java.io.IOException;
-import java.security.cert.X509Certificate;
-import javax.net.ssl.SSLSession;
-import org.apache.tomcat.util.net.SSLSessionManager;
-import org.apache.tomcat.util.net.SSLSupport;
+import ch.uninbf.mcs.tomcatopenssl.net.ssl.SslContext;
+import java.security.KeyManagementException;
+import java.security.SecureRandom;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLParameters;
+import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSessionContext;
+import javax.net.ssl.TrustManager;
 
 /**
  *
  * @author leo
  */
-public class OpenSSLSupport implements SSLSupport, SSLSessionManager {
+public class OpenSSLContext implements SslContext{
+    private static final String defaultCipher = "TLS";
+    private final String enabledCipher;
+    private static OpenSSLContext instance;
     
-    private OpenSSLSession session;
     
-    public OpenSSLSupport(SSLSession session) {
-        this.session = (OpenSSLSession) session;
+    OpenSSLContext(String cipher) {
+        if(cipher == null) {
+            enabledCipher = defaultCipher;
+        } else {
+            enabledCipher = cipher;
+        }
     }
 
     @Override
-    public String getCipherSuite() throws IOException {
+    public SslContext getInstance(String protocol) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public X509Certificate[] getPeerCertificateChain() throws IOException {
+    public void init(KeyManager[] kms, TrustManager[] tms, SecureRandom sr) throws KeyManagementException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public Integer getKeySize() throws IOException {
+    public SSLSessionContext getServerSessionContext() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public String getSessionId() throws IOException {
+    public SSLEngine createSSLEngine() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public String getProtocol() throws IOException {
+    public SSLServerSocketFactory getServerSocketFactory() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void invalidateSession() {
+    public SSLParameters getSupportedSSLParameters() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-    
 }
