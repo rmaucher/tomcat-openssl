@@ -29,7 +29,7 @@ public class OpenSSLImplementation extends SSLImplementation{
 
     @Override
     public SSLUtil getSSLUtil(AbstractEndpoint<?> ep) {
-        return new OpenSSLSocketFactory();
+        return new OpenSSLSocketFactory(ep);
     }
     
 }

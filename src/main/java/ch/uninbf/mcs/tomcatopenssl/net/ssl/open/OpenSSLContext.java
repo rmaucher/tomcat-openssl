@@ -5,8 +5,8 @@
  */
 package ch.uninbf.mcs.tomcatopenssl.net.ssl.open;
 
-import ch.uninbf.mcs.tomcatopenssl.net.ssl.SslContext;
 import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLEngine;
@@ -14,33 +14,19 @@ import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSessionContext;
 import javax.net.ssl.TrustManager;
+import org.apache.tomcat.util.net.SslContext;
 
 /**
  *
  * @author leo
  */
-public class OpenSSLContext implements SslContext{
-    private static final String defaultCipher = "TLS";
-    private final String enabledCipher;
-    private static OpenSSLContext instance;
-    
-    
-    OpenSSLContext(String cipher) {
-        if(cipher == null) {
-            enabledCipher = defaultCipher;
-        } else {
-            enabledCipher = cipher;
-        }
-    }
-
-    @Override
-    public SslContext getInstance(String protocol) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+public class OpenSSLContext extends SslContext{
+    private static final String defaultProtocol = "TLS";
+    private String enabledProtocol;
 
     @Override
     public void init(KeyManager[] kms, TrustManager[] tms, SecureRandom sr) throws KeyManagementException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        
     }
 
     @Override
@@ -61,5 +47,14 @@ public class OpenSSLContext implements SslContext{
     @Override
     public SSLParameters getSupportedSSLParameters() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    protected void initiateProtocol(String protocol) throws NoSuchAlgorithmException {
+        if(protocol == null) {
+            enabledProtocol = defaultProtocol;
+        } else {
+            enabledProtocol = protocol;
+        }    
     }
 }

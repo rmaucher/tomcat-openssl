@@ -6,10 +6,11 @@
 package ch.uninbf.mcs.tomcatopenssl.net.ssl.open;
 
 import javax.net.ssl.KeyManager;
-import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSessionContext;
 import javax.net.ssl.TrustManager;
+import org.apache.tomcat.util.net.AbstractEndpoint;
 import org.apache.tomcat.util.net.SSLUtil;
+import org.apache.tomcat.util.net.SslContext;
 
 /**
  *
@@ -17,9 +18,15 @@ import org.apache.tomcat.util.net.SSLUtil;
  */
 public class OpenSSLSocketFactory implements SSLUtil{
 
+    private final AbstractEndpoint<?> endpoint;
+    
+    public OpenSSLSocketFactory(AbstractEndpoint<?> endPoint) {
+        this.endpoint = endPoint;
+    }
+    
     @Override
-    public SSLContext createSSLContext() throws Exception {
-        return OpenSSLContext.getInstance(null);
+    public SslContext createSSLContext() throws Exception {
+        return SslContext.getInstance("ch.uninbf.mcs.tomcatopenssl.net.ssl.open.OpenSSLContext", endpoint.getSslProtocol());
     }
 
     @Override
@@ -38,12 +45,12 @@ public class OpenSSLSocketFactory implements SSLUtil{
     }
 
     @Override
-    public String[] getEnableableCiphers(SSLContext context) {
+    public String[] getEnableableCiphers(SslContext context) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public String[] getEnableableProtocols(SSLContext context) {
+    public String[] getEnableableProtocols(SslContext context) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
