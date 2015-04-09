@@ -66,7 +66,24 @@
          APR (HTTP/AJP) Connector: /docs/apr.html
          Define a non-SSL/TLS HTTP/1.1 Connector on port 8080
     -->
+    
+<!-- 
+    For testing SSL with JSSE:
+    <Connector port="8080" protocol="org.apache.coyote.http11.Http11Nio2Protocol"
+                SSLEnabled="true"
+               maxThreads="150" scheme="https" secure="true"
+               clientAuth="false" sslProtocol="TLS" 
+	       keystoreFile="/Users/leo/Documents/uni/master/jboss/tomcat/output/build/conf/keystore"
+	       keystorePass="password"
+               connectionTimeout="20000"
+               redirectPort="8443" />-->
+    
+    <!--With OpenSSL-->
     <Connector port="8080" protocol="ch.uninbf.mcs.tomcatopenssl.Http11OpenSSLNio2Protocol"
+               maxThreads="150" scheme="https" secure="true"
+               clientAuth="false" sslProtocol="TLS" 
+	       keystoreFile="/Users/leo/Documents/uni/master/jboss/tomcat/output/build/conf/keystore"
+	       keystorePass="password"
                connectionTimeout="20000"
                redirectPort="8443" />
     <!-- A "Connector" using the shared thread pool-->

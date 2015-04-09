@@ -30,7 +30,7 @@ import org.apache.juli.logging.LogFactory;
  *
  * @see <a href="http://en.wikipedia.org/wiki/Cipher_suite">Wikipedia page about cipher suite</a>
  */
-final class CipherSuiteConverter {
+public final class CipherSuiteConverter {
 
     private static final Log logger = LogFactory.getLog(CipherSuiteConverter.class);
 
@@ -126,7 +126,7 @@ final class CipherSuiteConverter {
     /**
      * Converts the specified Java cipher suites to the colon-separated OpenSSL cipher suite specification.
      */
-    static String toOpenSsl(Iterable<String> javaCipherSuites) {
+    public static String toOpenSsl(Iterable<String> javaCipherSuites) {
         final StringBuilder buf = new StringBuilder();
         for (String c: javaCipherSuites) {
             if (c == null) {
@@ -155,7 +155,7 @@ final class CipherSuiteConverter {
      *
      * @return {@code null} if the conversion has failed
      */
-    static String toOpenSsl(String javaCipherSuite) {
+    public static String toOpenSsl(String javaCipherSuite) {
         String converted = j2o.get(javaCipherSuite);
         if (converted != null) {
             return converted;

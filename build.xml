@@ -14,6 +14,12 @@
     <path id="tomcat.cp">
         <pathelement location="${tomcat.classpath}"/>
     </path>
+    <path id="tomcat.test.cp">
+        <pathelement location="${tomcat.classpath}"/>
+        <pathelement location="${tomcat.test.classpath}"/>
+        <pathelement location="${lib.junit}"/>
+        <pathelement location="${lib.hamcrest}"/>
+    </path>
     <target name="prepare">
         <mkdir dir="${build.java}"/>
         <mkdir dir="${dist}"/>
@@ -28,6 +34,9 @@
         <delete includeEmptyDirs="true">
             <fileset dir="${dist}"/>
         </delete>
+        <delete includeEmptyDirs="true">
+            <fileset dir="output"/>
+        </delete>
     </target>
     <target name="package">
         <jar destfile="${jar.path}" basedir="${build.java}"/>
@@ -36,5 +45,31 @@
     <target name="deploy" depends="build">
         <copy file="${jar.path}" toDir="${tomcat.lib}" overwrite="true"/>
         <copy file="resources/server.xml" toDir="${tomcat.conf}" overwrite="true"/>
+        <copy file="resources/keystore" toDir="${tomcat.conf}" overwrite="true" force="true"/>
+    </target>
+    <target name="compile-test" depends="compile">
+        <mkdir dir="${build.test}"/>
+        <mkdir dir="${report.dir}"/>
+        <javac destdir="${build.test}" srcdir="${java.test}" classpathref="tomcat.test.cp"/>
+        <copy todir="output/build">
+            <fileset dir="../tomcat/output/build"/>
+        </copy>
+    </target>
+    <target name="test" depends="compile-test">
+        <junit>
+            <classpath refid="tomcat.test.cp" />
+            <classpath>
+                <pathelement location="${build.test}"/>
+            </classpath>
+            <formatter type="xml" />
+            <formatter type="plain" />
+            <formatter type="brief" usefile="false" />
+ 
+            <batchtest fork="yes" todir="${report.dir}">
+                <fileset dir="${java.test}">
+                    <include name="**/*Test.java" />
+                </fileset>
+            </batchtest>
+        </junit>
     </target>
 </project>

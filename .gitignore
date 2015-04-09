@@ -1,6 +1,7 @@
 # Added by numa - remove generated output by ant of git
 dist/
 build/
+output/
 
 # Netbeans
 nbproject/
