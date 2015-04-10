@@ -15,10 +15,11 @@
         <pathelement location="${tomcat.classpath}"/>
     </path>
     <path id="tomcat.test.cp">
+        <pathelement location="/Users/leo/Documents/uni/master/jboss/tomcat/output/classes"/>
         <pathelement location="${tomcat.classpath}"/>
         <pathelement location="${tomcat.test.classpath}"/>
-        <pathelement location="${lib.junit}"/>
-        <pathelement location="${lib.hamcrest}"/>
+        <fileset dir="/Users/leo/java/lib" includes="**/*.jar"/>
+        <fileset dir="../tomcat/output/build" includes="**/*.jar"/>
     </path>
     <target name="prepare">
         <mkdir dir="${build.java}"/>
@@ -59,17 +60,22 @@
         <junit>
             <classpath refid="tomcat.test.cp" />
             <classpath>
+                
+            </classpath>
+            <classpath>
                 <pathelement location="${build.test}"/>
             </classpath>
-            <formatter type="xml" />
-            <formatter type="plain" />
+<!--            <formatter type="xml" />
+            <formatter type="plain" />-->
             <formatter type="brief" usefile="false" />
- 
-            <batchtest fork="yes" todir="${report.dir}">
+            <test name="ch.unibnf.mcs.tomcatopenssl.net.ssl.open.TestSsl" methods="testSimpleSsl" todir="${report.dir}">
+                
+            </test>
+<!--            <batchtest fork="yes" todir="${report.dir}">
                 <fileset dir="${java.test}">
-                    <include name="**/*Test.java" />
+                    <include name="**/Test*.java" />
                 </fileset>
-            </batchtest>
+            </batchtest>-->
         </junit>
     </target>
 </project>
