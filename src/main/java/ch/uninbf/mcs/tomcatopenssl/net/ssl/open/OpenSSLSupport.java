@@ -31,11 +31,6 @@ public class OpenSSLSupport implements SSLSupport, SSLSessionManager {
     }
 
     @Override
-    public X509Certificate[] getPeerCertificateChain() throws IOException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
     public Integer getKeySize() throws IOException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
@@ -63,6 +58,11 @@ public class OpenSSLSupport implements SSLSupport, SSLSessionManager {
     @Override
     public void invalidateSession() {
         getSession().invalidate();
+    }
+
+    @Override
+    public X509Certificate[] getPeerCertificateChain(boolean force) throws IOException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
 }

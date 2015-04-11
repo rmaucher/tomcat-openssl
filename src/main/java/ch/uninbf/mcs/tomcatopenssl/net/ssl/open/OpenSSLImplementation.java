@@ -5,11 +5,13 @@
  */
 package ch.uninbf.mcs.tomcatopenssl.net.ssl.open;
 
+import java.net.Socket;
 import javax.net.ssl.SSLSession;
 import org.apache.tomcat.util.net.AbstractEndpoint;
 import org.apache.tomcat.util.net.SSLImplementation;
 import org.apache.tomcat.util.net.SSLSupport;
 import org.apache.tomcat.util.net.SSLUtil;
+import org.apache.tomcat.util.net.ServerSocketFactory;
 
 /**
  *
@@ -23,13 +25,24 @@ public class OpenSSLImplementation extends SSLImplementation{
     }
 
     @Override
+    public ServerSocketFactory getServerSocketFactory(AbstractEndpoint<?> endpoint) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public SSLSupport getSSLSupport(Socket sock) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
     public SSLSupport getSSLSupport(SSLSession session) {
-        return new OpenSSLSupport(session);
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public SSLUtil getSSLUtil(AbstractEndpoint<?> ep) {
-        return new OpenSSLSocketFactory(ep);
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+
     
 }

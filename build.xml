@@ -24,9 +24,18 @@
     <target name="prepare">
         <mkdir dir="${build.java}"/>
         <mkdir dir="${dist}"/>
+        <copy file="${tomcat.files}/Nio2Endpoint.java" todir="${tomcat.todir}" overwrite="true" force="true"/>
+        <copy file="${tomcat.files}/SSLUtil.java" todir="${tomcat.todir}" overwrite="true" force="true"/>
+        <copy file="${tomcat.files}/SslContext.java" todir="${tomcat.todir}" overwrite="true" force="true"/>
+        <copy file="${tomcat.files}/jsse/JSSESocketFactory.java" todir="${tomcat.todir}/jsse" overwrite="true" force="true"/>
+        <copy file="${tomcat.files}/jsse/JSSESslContext.java" todir="${tomcat.todir}/jsse" overwrite="true" force="true"/>
     </target>
     <target name="compile" depends="prepare">
-        <javac destdir="${build.java}" srcdir="${java.src}" classpathref="tomcat.cp"></javac>
+        <javac destdir="${build.java}" srcdir="${java.src}" classpathref="tomcat.cp">
+        </javac>
+        <delete includeEmptyDirs="true">
+            <fileset dir="${build.java}/org/apache/tomcat/util"/>
+        </delete>
     </target>
     <target name="clean">
         <delete includeEmptyDirs="true">
@@ -34,9 +43,6 @@
         </delete>
         <delete includeEmptyDirs="true">
             <fileset dir="${dist}"/>
-        </delete>
-        <delete includeEmptyDirs="true">
-            <fileset dir="output"/>
         </delete>
     </target>
     <target name="package">
@@ -48,7 +54,7 @@
         <copy file="resources/server.xml" toDir="${tomcat.conf}" overwrite="true"/>
         <copy file="resources/keystore" toDir="${tomcat.conf}" overwrite="true" force="true"/>
     </target>
-    <target name="compile-test" depends="compile">
+<!--    <target name="compile-test" depends="compile">
         <mkdir dir="${build.test}"/>
         <mkdir dir="${report.dir}"/>
         <javac destdir="${build.test}" srcdir="${java.test}" classpathref="tomcat.test.cp"/>
@@ -65,17 +71,17 @@
             <classpath>
                 <pathelement location="${build.test}"/>
             </classpath>
-<!--            <formatter type="xml" />
-            <formatter type="plain" />-->
+            <formatter type="xml" />
+            <formatter type="plain" />
             <formatter type="brief" usefile="false" />
             <test name="ch.unibnf.mcs.tomcatopenssl.net.ssl.open.TestSsl" methods="testSimpleSsl" todir="${report.dir}">
                 
             </test>
-<!--            <batchtest fork="yes" todir="${report.dir}">
+            <batchtest fork="yes" todir="${report.dir}">
                 <fileset dir="${java.test}">
                     <include name="**/Test*.java" />
                 </fileset>
-            </batchtest>-->
+            </batchtest>
         </junit>
-    </target>
+    </target>-->
 </project>

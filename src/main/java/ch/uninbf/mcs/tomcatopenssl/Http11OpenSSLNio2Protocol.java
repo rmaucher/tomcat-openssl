@@ -14,7 +14,7 @@ public class Http11OpenSSLNio2Protocol extends Http11Nio2Protocol{
     public Http11OpenSSLNio2Protocol() {
         super();
         // will cause trouble, now...
-        getEndpoint().setSslImplementationName("ch.uninbf.mcs.tomcatopenssl.net.ssl.OpenSSLImplementation");
+        getEndpoint().setSslProtocol("ch.uninbf.mcs.tomcatopenssl.net.ssl.OpenSSLImplementation");
         getEndpoint().setSSLEnabled(true);
         log.error("Hello world! I'm a test");
     }
