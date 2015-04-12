@@ -37,6 +37,7 @@ import org.apache.tomcat.util.net.SslContext;
 public class OpenSSLContext extends SslContext {
 
     private static final String defaultProtocol = "TLS";
+    private static final Log log = LogFactory.getLog(OpenSSLContext.class);
 
     private static final List<String> DEFAULT_CIPHERS;
     private static final List<String> AVAILABLE_PROTOCOLS = new ArrayList<>();
@@ -57,6 +58,26 @@ public class OpenSSLContext extends SslContext {
 
     public String getEnabledProtocol() {
         return enabledProtocol;
+    }
+
+    private long sessionCacheSize;
+
+    public long getSessionCacheSize() {
+        return sessionCacheSize;
+    }
+
+    public void setSessionCacheSize(long cacheSize) {
+        this.sessionCacheSize = cacheSize;
+    }
+
+    private long sessionTimeout;
+
+    public long getSessionTimeout() {
+        return sessionTimeout;
+    }
+
+    public void setSessionTimeout(long sessionTimeout) {
+        this.sessionTimeout = sessionTimeout;
     }
 
     private final long aprPool;
@@ -197,9 +218,28 @@ public class OpenSSLContext extends SslContext {
         } catch (Exception e) {
             throw new SSLException("failed to set cipher suite: " + this.ciphers, e);
         }
-        
-        String[] protos = { enabledProtocol };
-        SSLContext.setNpnProtos(ctx, protos, SSL.SSL_SELECTOR_FAILURE_CHOOSE_MY_LAST_PROTOCOL);
+
+        SSLContext.setNpnProtos(ctx, OpenSSLProtocols.getProtocols(enabledProtocol), SSL.SSL_SELECTOR_FAILURE_CHOOSE_MY_LAST_PROTOCOL);
+
+        /* Set session cache size, if specified */
+        if (sessionCacheSize > 0) {
+            SSLContext.setSessionCacheSize(ctx, sessionCacheSize);
+        } else {
+            // Get the default session cache size using SSLContext.setSessionCacheSize()
+            this.sessionCacheSize = SSLContext.setSessionCacheSize(ctx, 20480);
+            // Revert the session cache size to the default value.
+            SSLContext.setSessionCacheSize(ctx, sessionCacheSize);
+        }
+
+        /* Set session timeout, if specified */
+        if (sessionTimeout > 0) {
+            SSLContext.setSessionCacheTimeout(ctx, sessionTimeout);
+        } else {
+            // Get the default session timeout using SSLContext.setSessionCacheTimeout()
+            this.sessionTimeout = sessionTimeout = SSLContext.setSessionCacheTimeout(ctx, 300);
+            // Revert the session timeout to the default value.
+            SSLContext.setSessionCacheTimeout(ctx, sessionTimeout);
+        }
     }
 
     @Override
@@ -229,13 +269,6 @@ public class OpenSSLContext extends SslContext {
         } else {
             enabledProtocol = protocol;
         }
-    }
-
-    void setCiphersWhish(List<String> endPointCiphers) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    void setrequestedCiphers(List<String> endpointCiphers) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        log.error(protocol);
     }
 }
