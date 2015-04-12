@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLException;
@@ -32,17 +34,36 @@ import org.apache.tomcat.util.net.SslContext;
  *
  * @author leo
  */
-public class OpenSSLContext extends SslContext{
+public class OpenSSLContext extends SslContext {
+
     private static final String defaultProtocol = "TLS";
+
     private static final List<String> DEFAULT_CIPHERS;
-    private final List<String> ciphers = new ArrayList<>();
+
+    private List<String> ciphers = new ArrayList<>();
+
+    public List<String> getCiphers() {
+        return ciphers;
+    }
+
+    private List<String> requestedCiphers;
+
+    public void setRequestedCiphers(List<String> ciphers) {
+        this.requestedCiphers = ciphers;
+    }
+
     private String enabledProtocol;
+
+    public String getEnabledProtocol() {
+        return enabledProtocol;
+    }
+
     private final long aprPool;
     protected final long ctx;
     private static final Log logger = LogFactory.getLog(OpenSSLContext.class);
 
     static {
-        List<String> ciphers = new ArrayList<String>();
+        List<String> ciphers = new ArrayList<>();
         // XXX: Make sure to sync this list with JdkSslEngineFactory.
         Collections.addAll(
                 ciphers,
@@ -60,11 +81,11 @@ public class OpenSSLContext extends SslContext{
             logger.debug("Default cipher suite (OpenSSL): " + ciphers);
         }
     }
-    
+
     public OpenSSLContext() throws SSLException {
         OpenSsl.ensureAvailability();
         aprPool = Pool.create(0);
-        
+
         try {
             synchronized (OpenSSLContext.class) {
                 try {
@@ -81,31 +102,31 @@ public class OpenSSLContext extends SslContext{
                 SSLContext.setOptions(ctx, SSL.SSL_OP_SINGLE_DH_USE);
                 SSLContext.setOptions(ctx, SSL.SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION);
 
-                /* List the ciphers that are permitted to negotiate. */
-                determineCiphers(null);
-                try {
-                    SSLContext.setCipherSuite(ctx, CipherSuiteConverter.toOpenSsl(this.ciphers));
-                } catch (SSLException e) {
-                    throw e;
-                } catch (Exception e) {
-                    throw new SSLException("failed to set cipher suite: " + this.ciphers, e);
-                }
-
-                List<String> nextProtoList = new ArrayList<>();
-                nextProtoList.add(defaultProtocol);
-                /* Set next protocols for next protocol negotiation extension, if specified */
-                
-                if (!nextProtoList.isEmpty()) {
-                    // Convert the protocol list into a comma-separated string.
-                    StringBuilder nextProtocolBuf = new StringBuilder();
-                    for (String p: nextProtoList) {
-                        nextProtocolBuf.append(p);
-                        nextProtocolBuf.append(',');
-                    }
-                    nextProtocolBuf.setLength(nextProtocolBuf.length() - 1);
-
-                    SSLContext.setNextProtos(ctx, nextProtocolBuf.toString());
-                }
+//                /* List the ciphers that are permitted to negotiate. */
+//                determineCiphers(null);
+//                try {
+//                    SSLContext.setCipherSuite(ctx, CipherSuiteConverter.toOpenSsl(this.ciphers));
+//                } catch (SSLException e) {
+//                    throw e;
+//                } catch (Exception e) {
+//                    throw new SSLException("failed to set cipher suite: " + this.ciphers, e);
+//                }
+//
+//                List<String> nextProtoList = new ArrayList<>();
+//                nextProtoList.add(defaultProtocol);
+//                /* Set next protocols for next protocol negotiation extension, if specified */
+//                
+//                if (!nextProtoList.isEmpty()) {
+//                    // Convert the protocol list into a comma-separated string.
+//                    StringBuilder nextProtocolBuf = new StringBuilder();
+//                    for (String p: nextProtoList) {
+//                        nextProtocolBuf.append(p);
+//                        nextProtocolBuf.append(',');
+//                    }
+//                    nextProtocolBuf.setLength(nextProtocolBuf.length() - 1);
+//
+//                    SSLContext.setNextProtos(ctx, nextProtocolBuf.toString());
+//                }
 
                 /* Set session cache size, if specified */
 //                if (sessionCacheSize > 0) {
@@ -136,28 +157,44 @@ public class OpenSSLContext extends SslContext{
 //            }
         }
     }
-    
-    private void determineCiphers(Iterable<String> ciphers) {
+
+    private void determineCiphers(List<String> ciphers) {
         if (ciphers == null) {
             ciphers = DEFAULT_CIPHERS;
         }
 
-        for (String c: ciphers) {
+        for (String c : ciphers) {
             if (c == null) {
                 break;
             }
-
             String converted = CipherSuiteConverter.toOpenSsl(c);
             if (converted != null) {
                 c = converted;
             }
-
             this.ciphers.add(c);
         }
     }
-    
+
     @Override
     public void init(KeyManager[] kms, TrustManager[] tms, SecureRandom sr) throws KeyManagementException {
+        synchronized (OpenSSLContext.class) {
+            try {
+                init();
+            } catch (SSLException ex) {
+                //TODO: catch exception
+            }
+        }
+    }
+
+    private void init() throws SSLException {
+        determineCiphers(requestedCiphers);
+        try {
+            SSLContext.setCipherSuite(ctx, CipherSuiteConverter.toOpenSsl(this.ciphers));
+        } catch (SSLException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SSLException("failed to set cipher suite: " + this.ciphers, e);
+        }
         
         
     }
@@ -184,10 +221,18 @@ public class OpenSSLContext extends SslContext{
 
     @Override
     protected void initiateProtocol(String protocol) throws NoSuchAlgorithmException {
-        if(protocol == null) {
+        if (protocol == null) {
             enabledProtocol = defaultProtocol;
         } else {
             enabledProtocol = protocol;
-        }    
+        }
+    }
+
+    void setCiphersWhish(List<String> endPointCiphers) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    void setrequestedCiphers(List<String> endpointCiphers) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

@@ -85,7 +85,9 @@
 	       keystoreFile="/Users/leo/Documents/uni/master/jboss/tomcat/output/build/conf/keystore"
 	       keystorePass="password"
                connectionTimeout="20000"
-               redirectPort="8443" />
+               redirectPort="8443"
+               CertificatFile="/Users/leo/Documents/uni/master/jboss/tomcat/output/build/conf/keystore"
+    />
     <!-- A "Connector" using the shared thread pool-->
     <!--
     <Connector executor="tomcatThreadPool"

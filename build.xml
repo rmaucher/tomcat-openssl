@@ -25,6 +25,7 @@
         <mkdir dir="${build.java}"/>
         <mkdir dir="${dist}"/>
         <copy file="${tomcat.files}/Nio2Endpoint.java" todir="${tomcat.todir}" overwrite="true" force="true"/>
+        <copy file="${tomcat.files}/NioEndpoint.java" todir="${tomcat.todir}" overwrite="true" force="true"/>
         <copy file="${tomcat.files}/SSLUtil.java" todir="${tomcat.todir}" overwrite="true" force="true"/>
         <copy file="${tomcat.files}/SslContext.java" todir="${tomcat.todir}" overwrite="true" force="true"/>
         <copy file="${tomcat.files}/jsse/JSSESocketFactory.java" todir="${tomcat.todir}/jsse" overwrite="true" force="true"/>
@@ -53,6 +54,11 @@
         <copy file="${jar.path}" toDir="${tomcat.lib}" overwrite="true"/>
         <copy file="resources/server.xml" toDir="${tomcat.conf}" overwrite="true"/>
         <copy file="resources/keystore" toDir="${tomcat.conf}" overwrite="true" force="true"/>
+    </target>
+    <target name="run" depends="deploy">
+        <exec executable="../tomcat/output/build/bin/catalina.sh">
+            <arg value="run"/>
+        </exec>
     </target>
 <!--    <target name="compile-test" depends="compile">
         <mkdir dir="${build.test}"/>

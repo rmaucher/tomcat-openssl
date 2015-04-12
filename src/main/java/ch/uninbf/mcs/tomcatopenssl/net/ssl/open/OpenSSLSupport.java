@@ -8,6 +8,7 @@ package ch.uninbf.mcs.tomcatopenssl.net.ssl.open;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
 import javax.net.ssl.SSLSession;
+import java.net.Socket;
 import org.apache.tomcat.util.net.SSLSessionManager;
 import org.apache.tomcat.util.net.SSLSupport;
 
@@ -18,11 +19,16 @@ import org.apache.tomcat.util.net.SSLSupport;
 public class OpenSSLSupport implements SSLSupport, SSLSessionManager {
     
     private OpenSSLSession session;
+    private Socket sock;
 
     public OpenSSLSession getSession() { return session; }
     
     public OpenSSLSupport(SSLSession session) {
         this.session = (OpenSSLSession) session;
+    }
+    
+    public OpenSSLSupport(Socket sock) {
+        this.sock = sock;
     }
 
     @Override

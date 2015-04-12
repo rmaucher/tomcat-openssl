@@ -26,22 +26,22 @@ public class OpenSSLImplementation extends SSLImplementation{
 
     @Override
     public ServerSocketFactory getServerSocketFactory(AbstractEndpoint<?> endpoint) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return new OpenSSLSocketFactory(endpoint);
     }
 
     @Override
     public SSLSupport getSSLSupport(Socket sock) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return new OpenSSLSupport(sock);
     }
 
     @Override
     public SSLSupport getSSLSupport(SSLSession session) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return new OpenSSLSupport(session);
     }
 
     @Override
     public SSLUtil getSSLUtil(AbstractEndpoint<?> ep) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return new OpenSSLSocketFactory(ep);
     }
 
     
