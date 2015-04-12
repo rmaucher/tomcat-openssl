@@ -39,6 +39,7 @@ public class OpenSSLContext extends SslContext {
     private static final String defaultProtocol = "TLS";
 
     private static final List<String> DEFAULT_CIPHERS;
+    private static final List<String> AVAILABLE_PROTOCOLS = new ArrayList<>();
 
     private List<String> ciphers = new ArrayList<>();
 
@@ -76,6 +77,7 @@ public class OpenSSLContext extends SslContext {
                 "DES-CBC3-SHA",
                 "RC4-SHA");
         DEFAULT_CIPHERS = Collections.unmodifiableList(ciphers);
+        Collections.addAll(AVAILABLE_PROTOCOLS, "SSLv3", "SSLv2", "TLSv1.2");
 
         if (logger.isDebugEnabled()) {
             logger.debug("Default cipher suite (OpenSSL): " + ciphers);
@@ -196,7 +198,8 @@ public class OpenSSLContext extends SslContext {
             throw new SSLException("failed to set cipher suite: " + this.ciphers, e);
         }
         
-        
+        String[] protos = { enabledProtocol };
+        SSLContext.setNpnProtos(ctx, protos, SSL.SSL_SELECTOR_FAILURE_CHOOSE_MY_LAST_PROTOCOL);
     }
 
     @Override
