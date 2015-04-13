@@ -6,19 +6,25 @@ Right now, TLS/SSL encryption in Tomcat is managed in two ways. By the usage of 
 
 This project will integrate OpenSLL into Tomcat but without depending of big projects like APR or Netty. For integrating OpenSSL, we will use as most as possible the code from Tomcat and follow the same architecture as the JSSE implementation into Tomcat.
 
-Our OpenSSL implementation will be available through the connector Nio2. In conseuquence, when using the Nio2 connector, users will have the choice between the JSSE implementation and OpenSSL.
+Our OpenSSL implementation will be available through the connector Nio2. In consequence, when using the Nio2 connector, users will have the choice between the JSSE implementation and OpenSSL.
 
+**NOTE:** project in active development and can change a lot.
 
-## Building
+## Implementation
 
-Actually, this project use Maven, because it is copied from tc-native-netty. The plan for building the project and to integrate with Tomcat is as follow:
+Currently, it is implemeneted under Tomcat 8.0.21 with some little changes in Tomcat.
 
-* The plan is to build a JAR containing all the necessary code. This JAR can be included into the Tomcat `CLASSPATH` to use our SSL implementation.
-* We use ant for managing the project (compiling Java and C code, running tests, genrating JAR, etc)
-* We don't need to manage dependecies because we use the dependencies of Tomcat
-* For compiling we add the path of the Tomcat sources and dependencies to the `CLASSPATH`, allowing us to utilize all the features of Tomcat.
-* For now, a sample `build.xml` is provided, it will be updated when we will start to code.
-* 
+A more detailed explanation can be found in the [wiki](https://github.com/facenord-sud/tomcat-openssl/wiki/OpenSSL-directly-into-Tomcat)
+
+## Usage
+ Ant is used for managing this project.
+ 
+For building the Java part, you will need the [source code](http://tomcat.apache.org/download-80.cgi) of Tomcat 8.0.21. After downloading it, you need to build it. When it is done, clone this repository, build it and build again Tomcat.
+
+When building this project, [some files](https://github.com/facenord-sud/tomcat-openssl/tree/master/src/main/java/org/apache/tomcat/util/net) will be copied to the Tomcat source code. The configuration of Tomcat under `output/build/conf` will be changed and the generated JAR's project will be added to the Tomcat's classpath.
+
+### Details
+
 
 ## Code organization
 
