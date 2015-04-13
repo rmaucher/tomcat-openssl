@@ -24,7 +24,16 @@ For building the Java part, you will need the [source code](http://tomcat.apache
 When building this project, [some files](https://github.com/facenord-sud/tomcat-openssl/tree/master/src/main/java/org/apache/tomcat/util/net) will be copied to the Tomcat source code. The configuration of Tomcat under `output/build/conf` will be changed and the generated JAR's project will be added to the Tomcat's classpath.
 
 ### Details
-
+1. [Build](https://tomcat.apache.org/tomcat-8.0-doc/building.html) Tomcat 8.0.21
+2. Configure the file `build.properties` to indicate where Tomcat is located
+3. Run `ant deploy`, it will:
+  * Copy some java files to Tomcat
+  * Build the Java files of this project
+  * Generate the JAR
+  * Copy the JAR to `output/build/lib` of Tomcat
+  * Change the configuration of `output/build/conf/server.xml` to use the Nio2 connector with our OpenSSL implementation
+4. In Tomcat run `ant deploy` again, for compiling the modified/added files
+5. In this project. run `ant run` to start Tomcat
 
 ## Code organization
 
