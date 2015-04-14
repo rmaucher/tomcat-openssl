@@ -214,74 +214,74 @@ public class OpenSSLContext extends SslContext {
     @Override
     public void init(KeyManager[] kms, TrustManager[] tms, SecureRandom sr) throws KeyManagementException {
         synchronized (OpenSSLContext.class) {
-            try {
-                init();
-                    KeyStore ks = KeyStore.getInstance("JKS");
-                    ks.load(null, null);
-                    CertificateFactory cf = CertificateFactory.getInstance("X.509");
-                    KeyFactory rsaKF = KeyFactory.getInstance("RSA");
-                    KeyFactory dsaKF = KeyFactory.getInstance("DSA");
-
-                    ByteBuf encodedKeyBuf = PemReader.readPrivateKey(keyFile);
-                    byte[] encodedKey = new byte[encodedKeyBuf.readableBytes()];
-                    encodedKeyBuf.readBytes(encodedKey).release();
-
-                    char[] keyPasswordChars = keyPassword.toCharArray();
-                    PKCS8EncodedKeySpec encodedKeySpec = generateKeySpec(keyPasswordChars, encodedKey);
-
-                    PrivateKey key;
-                    try {
-                        key = rsaKF.generatePrivate(encodedKeySpec);
-                    } catch (InvalidKeySpecException ignore) {
-                        key = dsaKF.generatePrivate(encodedKeySpec);
-                    }
-
-                    List<Certificate> certChain = new ArrayList<Certificate>();
-                    ByteBuf[] certs = PemReader.readCertificates(certChainFile);
-                    try {
-                        for (ByteBuf buf: certs) {
-                            certChain.add(cf.generateCertificate(new ByteBufInputStream(buf)));
-                        }
-                    } finally {
-                        for (ByteBuf buf: certs) {
-                            buf.release();
-                        }
-                    }
-
-                    ks.setKeyEntry("key", key, keyPasswordChars, certChain.toArray(new Certificate[certChain.size()]));
-
-                    if (trustManagerFactory == null) {
-                        // Mimic the way SSLContext.getInstance(KeyManager[], null, null) works
-                        trustManagerFactory = TrustManagerFactory.getInstance(
-                                TrustManagerFactory.getDefaultAlgorithm());
-                        trustManagerFactory.init((KeyStore) null);
-                    } else {
-                        trustManagerFactory.init(ks);
-                    }
-
-                    final X509TrustManager manager = chooseTrustManager(trustManagerFactory.getTrustManagers());
-                    SSLContext.setCertVerifyCallback(ctx, new CertificateVerifier() {
-                        @Override
-                        public boolean verify(long ssl, byte[][] chain, String auth) {
-                            X509Certificate[] peerCerts = certificates(chain);
-                            try {
-                                manager.checkClientTrusted(peerCerts, auth);
-                                return true;
-                            } catch (Exception e) {
-                                logger.debug("verification of certificate failed", e);
-                            }
-                            return false;
-                        }
-                    });
-            } catch (SSLException ex) {
-                //TODO: catch exception
-            } catch (IOException ex) {
-                Logger.getLogger(OpenSSLContext.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (NoSuchAlgorithmException ex) {
-                Logger.getLogger(OpenSSLContext.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (CertificateException ex) {
-                Logger.getLogger(OpenSSLContext.class.getName()).log(Level.SEVERE, null, ex);
-            }
+//            try {
+//                init();
+//                    KeyStore ks = KeyStore.getInstance("JKS");
+//                    ks.load(null, null);
+//                    CertificateFactory cf = CertificateFactory.getInstance("X.509");
+//                    KeyFactory rsaKF = KeyFactory.getInstance("RSA");
+//                    KeyFactory dsaKF = KeyFactory.getInstance("DSA");
+//
+//                    ByteBuf encodedKeyBuf = PemReader.readPrivateKey(keyFile);
+//                    byte[] encodedKey = new byte[encodedKeyBuf.readableBytes()];
+//                    encodedKeyBuf.readBytes(encodedKey).release();
+//
+//                    char[] keyPasswordChars = keyPassword.toCharArray();
+//                    PKCS8EncodedKeySpec encodedKeySpec = generateKeySpec(keyPasswordChars, encodedKey);
+//
+//                    PrivateKey key;
+//                    try {
+//                        key = rsaKF.generatePrivate(encodedKeySpec);
+//                    } catch (InvalidKeySpecException ignore) {
+//                        key = dsaKF.generatePrivate(encodedKeySpec);
+//                    }
+//
+//                    List<Certificate> certChain = new ArrayList<Certificate>();
+//                    ByteBuf[] certs = PemReader.readCertificates(certChainFile);
+//                    try {
+//                        for (ByteBuf buf: certs) {
+//                            certChain.add(cf.generateCertificate(new ByteBufInputStream(buf)));
+//                        }
+//                    } finally {
+//                        for (ByteBuf buf: certs) {
+//                            buf.release();
+//                        }
+//                    }
+//
+//                    ks.setKeyEntry("key", key, keyPasswordChars, certChain.toArray(new Certificate[certChain.size()]));
+//
+//                    if (trustManagerFactory == null) {
+//                        // Mimic the way SSLContext.getInstance(KeyManager[], null, null) works
+//                        trustManagerFactory = TrustManagerFactory.getInstance(
+//                                TrustManagerFactory.getDefaultAlgorithm());
+//                        trustManagerFactory.init((KeyStore) null);
+//                    } else {
+//                        trustManagerFactory.init(ks);
+//                    }
+//
+//                    final X509TrustManager manager = chooseTrustManager(trustManagerFactory.getTrustManagers());
+//                    SSLContext.setCertVerifyCallback(ctx, new CertificateVerifier() {
+//                        @Override
+//                        public boolean verify(long ssl, byte[][] chain, String auth) {
+//                            X509Certificate[] peerCerts = certificates(chain);
+//                            try {
+//                                manager.checkClientTrusted(peerCerts, auth);
+//                                return true;
+//                            } catch (Exception e) {
+//                                logger.debug("verification of certificate failed", e);
+//                            }
+//                            return false;
+//                        }
+//                    });
+//            } catch (SSLException ex) {
+//                //TODO: catch exception
+//            } catch (IOException ex) {
+//                Logger.getLogger(OpenSSLContext.class.getName()).log(Level.SEVERE, null, ex);
+//            } catch (NoSuchAlgorithmException ex) {
+//                Logger.getLogger(OpenSSLContext.class.getName()).log(Level.SEVERE, null, ex);
+//            } catch (CertificateException ex) {
+//                Logger.getLogger(OpenSSLContext.class.getName()).log(Level.SEVERE, null, ex);
+//            }
         }
     }
 

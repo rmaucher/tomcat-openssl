@@ -55,7 +55,7 @@ public final class OpenSsl {
         // If in the classpath, try to load the native library and initialize netty-tcnative.
         if (cause == null) {
             try {
-                NativeLibraryLoader.load("netty-tcnative", SSL.class.getClassLoader());
+                NativeLibraryLoader.load("tcnative", SSL.class.getClassLoader());
                 Library.initialize("provided");
                 SSL.initialize(null);
             } catch (Throwable t) {
