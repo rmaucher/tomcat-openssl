@@ -18,8 +18,8 @@ public class OpenSSLKeyManager implements KeyManager{
     public void setPrivateKey(File privateKey) { this.privateKey = privateKey; }
     
     OpenSSLKeyManager(String certChainFile, String keyFile) {
-        this.certificateChain = new File(certChainFile);
-        this.privateKey = new File(keyFile);
+        this.certificateChain = (certificateChain==null ? null : new File(certChainFile));
+        this.privateKey = (keyFile==null ? null : new File(keyFile));
     }
     
 }

@@ -55,7 +55,6 @@ public class OpenSSLSocketFactory implements SSLUtil, ServerSocketFactory{
     
     @Override
     public SslContext createSSLContext() throws Exception {
-        log.error(endpoint.getSslProtocol());
         OpenSSLContext context = (OpenSSLContext) SslContext.getInstance("ch.uninbf.mcs.tomcatopenssl.net.ssl.open.OpenSSLContext", endpoint.getSslProtocol());
         String requestedCiphersStr = endpoint.getCiphers();
         List<String> requestedCiphers = null;
@@ -63,10 +62,17 @@ public class OpenSSLSocketFactory implements SSLUtil, ServerSocketFactory{
             requestedCiphers = OpenSSLCipherConfigurationParser.parseExpression(requestedCiphersStr);
         }
         context.setRequestedCiphers(requestedCiphers);
-        context.setSessionTimeout(Long.parseLong(endpoint.getSessionTimeout()));
-        context.setSessionCacheSize(Long.parseLong(endpoint.getSessionCacheSize()));
+        context.setSessionTimeout(getSessionConfig(endpoint.getSessionTimeout()));
+        context.setSessionCacheSize(getSessionConfig(endpoint.getSessionCacheSize()));
         
         return context;
+    }
+    
+    private long getSessionConfig(String config) {
+        if(config == null)  {
+            return 0;
+        }
+        return Long.parseLong(config);
     }
 
     @Override
