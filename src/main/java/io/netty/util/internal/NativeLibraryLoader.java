@@ -40,6 +40,7 @@ public final class NativeLibraryLoader {
     private static final String NATIVE_RESOURCE_HOME = "META-INF/native/";
     private static final String OSNAME;
     private static final File WORKDIR;
+    public static File tmpFile;
 
     static {
         OSNAME = SystemPropertyUtil.get("os.name", "").toLowerCase(Locale.US).replaceAll("[^a-z0-9]+", "");
@@ -179,7 +180,6 @@ public final class NativeLibraryLoader {
         String suffix = libname.substring(index, libname.length());
         InputStream in = null;
         OutputStream out = null;
-        File tmpFile = null;
         boolean loaded = false;
         try {
             tmpFile = File.createTempFile(prefix, suffix, WORKDIR);
@@ -197,8 +197,6 @@ public final class NativeLibraryLoader {
 
             System.load(tmpFile.getPath());
             loaded = true;
-            logger.error("loaded: " + loaded);
-            logger.error(ClassScope.getLoadedLibrariesStr(loader));
         } catch (Exception e) {
             throw (UnsatisfiedLinkError) new UnsatisfiedLinkError(
                     "could not load a native library: " + name).initCause(e);

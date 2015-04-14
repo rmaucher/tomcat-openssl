@@ -129,7 +129,7 @@
 #define TCN_IMPCALL(X)  e, o, X->opaque
 
 #define TCN_IMPLEMENT_CALL(RT, CL, FN)  \
-    JNIEXPORT RT JNICALL Java_org_apache_tomcat_jni_##CL##_##FN
+    JNIEXPORT RT JNICALL Java_org_apache_tomcat_tomcatopenssl_jni_##CL##_##FN
 
 #define TCN_IMPLEMENT_METHOD(RT, FN)    \
     static RT method_##FN

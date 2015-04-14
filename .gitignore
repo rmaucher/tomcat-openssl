@@ -6,6 +6,12 @@ output/
 # Netbeans
 nbproject/
 
+*.o
+*.a
+*.dylib
+src/main/c/.libs/
+*.lo
+
 # Eclipse project files
 .project
 .classpath

@@ -17,9 +17,6 @@
 
 package org.apache.tomcat.tomcatopenssl.jni;
 
-import ch.uninbf.mcs.tomcatopenssl.util.ClassScope;
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
 
 /** Library
  *
@@ -162,7 +159,6 @@ public final class Library {
     public static int APR_MMAP_THRESHOLD;
     public static int APR_MMAP_LIMIT;
 
-    private static final Log log = LogFactory.getLog(Library.class);
     /* return global TCN's APR pool */
     public static native long globalPool();
 
@@ -179,7 +175,6 @@ public final class Library {
                 _instance = new Library();
             else
                 _instance = new Library(libraryName);
-            log.error(ClassScope.getLoadedLibrariesStr(SSL.class.getClassLoader()));
             TCN_MAJOR_VERSION  = version(0x01);
             TCN_MINOR_VERSION  = version(0x02);
             TCN_PATCH_VERSION  = version(0x03);

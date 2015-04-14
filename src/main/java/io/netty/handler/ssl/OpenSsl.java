@@ -56,11 +56,8 @@ public final class OpenSsl {
         if (cause == null) {
             try {
                 NativeLibraryLoader.load("tcnative-1", SSL.class.getClassLoader());
-                logger.error("Library loaded");
                 Library.initialize("provided");
-                logger.error("Library initialized");
                 SSL.initialize(null);
-                logger.error("SSL initialized");
             } catch (Throwable t) {
                 cause = t;
                 logger.error(
