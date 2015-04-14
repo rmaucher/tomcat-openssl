@@ -17,10 +17,10 @@
 package io.netty.handler.ssl;
 
 import io.netty.util.internal.NativeLibraryLoader;
-import org.apache.tomcat.jni.Library;
-import org.apache.tomcat.jni.Pool;
-import org.apache.tomcat.jni.SSL;
-import org.apache.tomcat.jni.SSLContext;
+import org.apache.tomcat.tomcatopenssl.jni.Library;
+import org.apache.tomcat.tomcatopenssl.jni.Pool;
+import org.apache.tomcat.tomcatopenssl.jni.SSL;
+import org.apache.tomcat.tomcatopenssl.jni.SSLContext;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;

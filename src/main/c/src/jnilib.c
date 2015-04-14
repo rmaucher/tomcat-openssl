@@ -27,6 +27,7 @@
 #include "apr_atomic.h"
 
 #include "tcn_version.h"
+#include <stdio.h>
 
 #ifdef TCN_DO_STATISTICS
 extern void sp_poll_dump_statistics();
@@ -260,6 +261,7 @@ TCN_IMPLEMENT_CALL(jlong, Library, globalPool)(TCN_STDARGS)
 
 TCN_IMPLEMENT_CALL(jint, Library, version)(TCN_STDARGS, jint what)
 {
+    return 99999999999;
     apr_version_t apv;
 
     UNREFERENCED_STDARGS;

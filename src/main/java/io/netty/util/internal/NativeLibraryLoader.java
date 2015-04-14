@@ -23,6 +23,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.util.Locale;
+import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
 
@@ -192,6 +195,7 @@ public final class NativeLibraryLoader {
 
             System.load(tmpFile.getPath());
             loaded = true;
+            logger.error(ClassScope.getLoadedLibraries(loader));
         } catch (Exception e) {
             throw (UnsatisfiedLinkError) new UnsatisfiedLinkError(
                     "could not load a native library: " + name).initCause(e);
@@ -224,5 +228,24 @@ public final class NativeLibraryLoader {
 
     private NativeLibraryLoader() {
         // Utility
+    }
+    
+    private static class ClassScope {
+      private static java.lang.reflect.Field LIBRARIES;
+    static {
+         try {
+             LIBRARIES = ClassLoader.class.getDeclaredField("loadedLibraryNames");
+             LIBRARIES.setAccessible(true);
+         } catch (NoSuchFieldException ex) {
+             logger.error("no such filed: " + ex);
+         } catch (SecurityException ex) {
+             logger.error("Security exception: " + ex);
+         }
+        
+    }
+    public static String[] getLoadedLibraries(final ClassLoader loader) throws IllegalArgumentException, IllegalAccessException {
+        final Vector<String> libraries = (Vector<String>) LIBRARIES.get(loader);
+        return libraries.toArray(new String[] {});
+    }
     }
 }
