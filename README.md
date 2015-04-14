@@ -4,7 +4,7 @@
 
 Right now, TLS/SSL encryption in Tomcat is managed in two ways. By the usage of the Java Secure Socket Extension(JSSE) API and by Tomcat native(tc-native) through APR and OpenSSL. Netty uses as well tc-native for providing is own OpenSSL implementation under Netty, called tc-netty.
 
-This project will integrate OpenSLL into Tomcat but without depending of big projects like APR or Netty. For integrating OpenSSL, we will use as most as possible the code from Tomcat and follow the same architecture as the JSSE implementation into Tomcat.
+This project will integrate OpenSLL into Tomcat but without depending of big projects like Tomcat native, APR or Netty. For integrating OpenSSL, we will use as most as possible the code from Tomcat and follow the same architecture as the JSSE implementation into Tomcat.
 
 Our OpenSSL implementation will be available through the connector Nio2. In consequence, when using the Nio2 connector, users will have the choice between the JSSE implementation and OpenSSL.
 
