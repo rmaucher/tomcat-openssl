@@ -1,0 +1,12 @@
+#! /bin/sh
+#
+# Created by configure
+
+CPPFLAGS="-I/usr/local/opt/openssl/include "; export CPPFLAGS
+LDFLAGS="-L/usr/local/opt/openssl/lib "; export LDFLAGS
+"./configure" \
+"--with-apr=/usr/local/Cellar/apr/1.5.1/" \
+"--with-ssl=/usr/local/Cellar/openssl/1.0.2a-1/" \
+"LDFLAGS=-L/usr/local/opt/openssl/lib" \
+"CPPFLAGS=-I/usr/local/opt/openssl/include" \
+"$@"
