@@ -55,14 +55,16 @@ public final class OpenSsl {
         // If in the classpath, try to load the native library and initialize netty-tcnative.
         if (cause == null) {
             try {
-                NativeLibraryLoader.load("tcnative", SSL.class.getClassLoader());
+                NativeLibraryLoader.load("tcnative-1", SSL.class.getClassLoader());
+                logger.error("Library loaded");
                 Library.initialize("provided");
+                logger.error("Library initialized");
                 SSL.initialize(null);
+                logger.error("SSL initialized");
             } catch (Throwable t) {
                 cause = t;
-                logger.debug(
-                        "Failed to load netty-tcnative; OpenSSLEngine will be unavailable. " +
-                        "See http://netty.io/wiki/forked-tomcat-native.html for more information.", t);
+                logger.error(
+                        "Failed to load netty-tcnative; OpenSSLEngine will be unavailable. ", t);
             }
         }
 

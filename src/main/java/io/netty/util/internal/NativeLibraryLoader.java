@@ -15,7 +15,7 @@
  */
 package io.netty.util.internal;
 
-
+import ch.uninbf.mcs.tomcatopenssl.util.ClassScope;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -166,6 +166,8 @@ public final class NativeLibraryLoader {
             }
         }
 
+        logger.error("url: " + url);
+
         if (url == null) {
             // Fall back to normal loading of JNI stuff
             System.loadLibrary(name);
@@ -195,7 +197,8 @@ public final class NativeLibraryLoader {
 
             System.load(tmpFile.getPath());
             loaded = true;
-            logger.error(ClassScope.getLoadedLibraries(loader));
+            logger.error("loaded: " + loaded);
+            logger.error(ClassScope.getLoadedLibrariesStr(loader));
         } catch (Exception e) {
             throw (UnsatisfiedLinkError) new UnsatisfiedLinkError(
                     "could not load a native library: " + name).initCause(e);
@@ -228,24 +231,5 @@ public final class NativeLibraryLoader {
 
     private NativeLibraryLoader() {
         // Utility
-    }
-    
-    private static class ClassScope {
-      private static java.lang.reflect.Field LIBRARIES;
-    static {
-         try {
-             LIBRARIES = ClassLoader.class.getDeclaredField("loadedLibraryNames");
-             LIBRARIES.setAccessible(true);
-         } catch (NoSuchFieldException ex) {
-             logger.error("no such filed: " + ex);
-         } catch (SecurityException ex) {
-             logger.error("Security exception: " + ex);
-         }
-        
-    }
-    public static String[] getLoadedLibraries(final ClassLoader loader) throws IllegalArgumentException, IllegalAccessException {
-        final Vector<String> libraries = (Vector<String>) LIBRARIES.get(loader);
-        return libraries.toArray(new String[] {});
-    }
     }
 }
