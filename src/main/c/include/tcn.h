@@ -107,7 +107,7 @@
     else                                    \
         (E) = (E)
 
-#define TCN_CLASS_PATH  "org/apache/tomcat/jni/"
+#define TCN_CLASS_PATH  "org/apache/tomcat/tomcatopenssl/jni/"
 #define TCN_FINFO_CLASS TCN_CLASS_PATH "FileInfo"
 #define TCN_AINFO_CLASS TCN_CLASS_PATH "Sockaddr"
 #define TCN_ERROR_CLASS TCN_CLASS_PATH "Error"
