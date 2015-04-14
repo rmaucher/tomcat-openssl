@@ -21,11 +21,18 @@ A more detailed explanation can be found in the [wiki](https://github.com/faceno
  
 For building the Java part, you will need the [source code](http://tomcat.apache.org/download-80.cgi) of Tomcat 8.0.21. After downloading it, you need to build it. When it is done, clone this repository, build it and build again Tomcat.
 
+For building the C part, you will need to have openssl and apr already installed.
+
 When building this project, [some files](https://github.com/facenord-sud/tomcat-openssl/tree/master/src/main/java/org/apache/tomcat/util/net) will be copied to the Tomcat source code. The configuration of Tomcat under `output/build/conf` will be changed and the generated JAR's project will be added to the Tomcat's classpath.
 
 ### Details
 1. [Build](https://tomcat.apache.org/tomcat-8.0-doc/building.html) Tomcat 8.0.21
-2. Configure the file `build.properties` to indicate where Tomcat is located
+2. Configure the file `build.properties` to indicate where Tomcat is located, openssl and apr
+3. Build the native C extension:
+  * `cd src/main/c`
+  * `./configure --with-apr=apr_install_path --with-ssl=openssl_install_path`
+  * `make`
+  * Read BUILDING
 3. Run `ant deploy`, it will:
   * Copy some java files to Tomcat
   * Build the Java files of this project
@@ -37,6 +44,6 @@ When building this project, [some files](https://github.com/facenord-sud/tomcat-
 
 ## Code organization
 
-The code under `org.apache.tomcat.jni.*` is copied as is from the tc-netty. To compile it you need to follow the instructions provided here: https://github.com/netty/netty/wiki/Forked-Tomcat-Native
+The code under `org.apache.tomcat.tomcatopenssl.jni.*` is copied as is from the tc-netty. To compile it you need to follow the instructions provided here: https://github.com/netty/netty/wiki/Forked-Tomcat-Native
 
 The code uner `io.netty.*` is copied from netty

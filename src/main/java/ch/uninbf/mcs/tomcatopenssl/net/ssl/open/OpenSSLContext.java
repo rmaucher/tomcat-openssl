@@ -168,7 +168,11 @@ public class OpenSSLContext extends SslContext {
         synchronized (OpenSSLContext.class) {
             try {
                 init();
-
+                // From the class of io.netty.handler.ssl.OpenSslServerContext:157-245
+                // OpenSSL requires certificates in PEM formats, but the verfication of the certificate
+                // is done with KeyManagers and TrustManagers of Java
+                // TODO: determine how to implemenet -> probably like netty
+                // TODO: implement a similar way
             } catch (SSLException ex) {
                 //TODO: catch exception
             }
