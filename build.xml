@@ -46,12 +46,23 @@
             <fileset dir="${dist}"/>
         </delete>
     </target>
-    <target name="package">
+    <target name="package" depends="compile">
         <jar destfile="${jar.path}" basedir="${build.java}"/>
     </target>
-    <target name="build" depends="compile, package"/>
+        <target name="package-native" depends="package">
+        <copy todir="${dist.native-jar}">
+            <zipfileset src="${jar.path}" />
+        </copy>
+        <copy todir="${dist.native-jar}/META-INF/native" includeEmptyDirs="false">
+            <zipfileset dir="${native.libs}" />
+            <!--<regexpmapper handledirsep="yes" from="^(?:[^/]+/)*([^/]+)$" to="META-INF/native/\1" />-->
+        </copy>
+        <jar destfile="${jar.native.path}" basedir="${dist.native-jar}" index="true"/>
+    </target>
+    <target name="build" depends="package-native"/>
+
     <target name="deploy" depends="build">
-        <copy file="${jar.path}" toDir="${tomcat.lib}" overwrite="true"/>
+        <copy file="${jar.native.path}" toDir="${tomcat.lib}" overwrite="true"/>
         <copy file="resources/server.xml" toDir="${tomcat.conf}" overwrite="true"/>
         <copy file="resources/keystore" toDir="${tomcat.conf}" overwrite="true" force="true"/>
         <copy file="resources/logging.properties" toDir="${tomcat.conf}" overwrite="true" force="true"/>
