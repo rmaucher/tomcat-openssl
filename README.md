@@ -27,7 +27,7 @@ When building this project, [some files](https://github.com/facenord-sud/tomcat-
 
 ### Details
 1. [Build](https://tomcat.apache.org/tomcat-8.0-doc/building.html) Tomcat 8.0.21
-2. Configure the file `build.properties` to indicate where Tomcat is located, openssl and apr
+2. Configure the file `build.properties` to indicate where Tomcat, OpenSSL and APR is located
 3. Build the native C extension:
   * `cd src/main/c`
   * `./configure --with-apr=apr_install_path --with-ssl=openssl_install_path`
