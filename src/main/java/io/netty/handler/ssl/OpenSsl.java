@@ -154,7 +154,7 @@ public final class OpenSsl {
         return AVAILABLE_CIPHER_SUITES.contains(cipherSuite);
     }
 
-    static boolean isError(long errorCode) {
+    public static boolean isError(long errorCode) {
         return errorCode != SSL.SSL_ERROR_NONE;
     }
 

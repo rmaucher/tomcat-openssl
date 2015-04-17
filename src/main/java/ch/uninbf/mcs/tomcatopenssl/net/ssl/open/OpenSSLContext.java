@@ -5,9 +5,15 @@
  */
 package ch.uninbf.mcs.tomcatopenssl.net.ssl.open;
 
+import static ch.uninbf.mcs.tomcatopenssl.util.Utility.*;
 import io.netty.handler.ssl.CipherSuiteConverter;
 import io.netty.handler.ssl.OpenSsl;
+import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -26,6 +32,12 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.crypto.Cipher;
+import javax.crypto.EncryptedPrivateKeyInfo;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLException;
@@ -93,9 +105,20 @@ public class OpenSSLContext extends SslContext {
         this.sessionTimeout = sessionTimeout;
     }
 
+    private String keyPassword;
+
+    public String getKeyPassowrd() {
+        return keyPassword;
+    }
+
+    public void setKeyPassowrd(String keyPassowrd) {
+        this.keyPassword = keyPassowrd;
+    }
+
     private final long aprPool;
     protected final long ctx;
     private static final Log logger = LogFactory.getLog(OpenSSLContext.class);
+    static final CertificateFactory X509_CERT_FACTORY;
 
     static {
         List<String> ciphers = new ArrayList<>();
@@ -115,6 +138,12 @@ public class OpenSSLContext extends SslContext {
 
         if (logger.isDebugEnabled()) {
             logger.debug("Default cipher suite (OpenSSL): " + ciphers);
+        }
+
+        try {
+            X509_CERT_FACTORY = CertificateFactory.getInstance("X.509");
+        } catch (CertificateException e) {
+            throw new IllegalStateException("unable to instance X.509 CertificateFactory", e);
         }
     }
 
@@ -171,11 +200,55 @@ public class OpenSSLContext extends SslContext {
                 // From the class of io.netty.handler.ssl.OpenSslServerContext:157-245
                 // OpenSSL requires certificates in PEM formats, but the verfication of the certificate
                 // is done with KeyManagers and TrustManagers of Java
-                // TODO: determine how to implemenet -> probably like netty
-                // TODO: implement a similar way
+                // TODO-done: determine how to implemenet -> probably like netty
+                // TODO-done: implement a similar way
+                 /* Load the certificate file and private key. */
+                if(kms != null && tms != null) {
+                    init(kms, tms);
+                }
             } catch (SSLException ex) {
                 //TODO: catch exception
             }
+        }
+    }
+
+    private void init(KeyManager[] kms, TrustManager[] tms) throws SSLException {
+        File certChainFile = null;
+        File keyFile = null;
+        try {
+            certChainFile = chooseKeyManager(kms).getCertificateChain();
+            keyFile = chooseKeyManager(kms).getPrivateKey();
+            checkNotNull(keyPassword);
+            if (!SSLContext.setCertificate(ctx, certChainFile.getPath(), keyFile.getPath(), keyPassword, SSL.SSL_AIDX_RSA)) {
+                long error = SSL.getLastErrorNumber();
+                if (OpenSsl.isError(error)) {
+                    String err = SSL.getErrorString(error);
+                    throw new SSLException("failed to set certificate: "
+                            + certChainFile + " and " + keyFile + " (" + err + ')');
+                }
+            }
+        } catch (SSLException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SSLException("failed to set certificate: " + certChainFile + " and " + keyFile, e);
+        }
+        try {
+
+            final X509TrustManager manager = chooseTrustManager(tms);
+            SSLContext.setCertVerifyCallback(ctx, new CertificateVerifier() {
+                @Override
+                public boolean verify(long ssl, byte[][] chain, String auth) {
+                    X509Certificate[] peerCerts = certificates(chain);
+                    try {
+                        manager.checkClientTrusted(peerCerts, auth);
+                        return true;
+                    } catch (Exception e) {
+                        logger.debug("verification of certificate failed", e);
+                    }
+                    return false;
+                }
+            });
+        } catch (Exception e) {
         }
     }
 
@@ -211,6 +284,33 @@ public class OpenSSLContext extends SslContext {
             SSLContext.setSessionCacheTimeout(ctx, sessionTimeout);
         }
     }
+    
+    static OpenSSLKeyManager chooseKeyManager(KeyManager[] managers) throws Exception {
+        for (KeyManager manager : managers) {
+            if (manager instanceof OpenSSLKeyManager) {
+                return (OpenSSLKeyManager) manager;
+            }
+        }
+        //TODO: find a more appropriate exception
+        throw new IllegalStateException("No OpenSSLKeyManager found");
+    }
+
+    static X509TrustManager chooseTrustManager(TrustManager[] managers) {
+        for (TrustManager m : managers) {
+            if (m instanceof X509TrustManager) {
+                return (X509TrustManager) m;
+            }
+        }
+        throw new IllegalStateException("no X509TrustManager found");
+    }
+
+    private static X509Certificate[] certificates(byte[][] chain) {
+        X509Certificate[] peerCerts = new X509Certificate[chain.length];
+        for (int i = 0; i < peerCerts.length; i++) {
+            peerCerts[i] = new OpenSslX509Certificate(chain[i]);
+        }
+        return peerCerts;
+    }
 
     @Override
     public SSLSessionContext getServerSessionContext() {
@@ -240,5 +340,45 @@ public class OpenSSLContext extends SslContext {
             enabledProtocol = protocol;
         }
         log.error(protocol);
+    }
+
+    /**
+     * Generates a key specification for an (encrypted) private key.
+     *
+     * @param password characters, if {@code null} or empty an unencrypted key
+     * is assumed
+     * @param key bytes of the DER encoded private key
+     *
+     * @return a key specification
+     *
+     * @throws IOException if parsing {@code key} fails
+     * @throws NoSuchAlgorithmException if the algorithm used to encrypt
+     * {@code key} is unkown
+     * @throws NoSuchPaddingException if the padding scheme specified in the
+     * decryption algorithm is unkown
+     * @throws InvalidKeySpecException if the decryption key based on
+     * {@code password} cannot be generated
+     * @throws InvalidKeyException if the decryption key based on
+     * {@code password} cannot be used to decrypt {@code key}
+     * @throws InvalidAlgorithmParameterException if decryption algorithm
+     * parameters are somehow faulty
+     */
+    protected static PKCS8EncodedKeySpec generateKeySpec(char[] password, byte[] key)
+            throws IOException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeySpecException,
+            InvalidKeyException, InvalidAlgorithmParameterException {
+
+        if (password == null || password.length == 0) {
+            return new PKCS8EncodedKeySpec(key);
+        }
+
+        EncryptedPrivateKeyInfo encryptedPrivateKeyInfo = new EncryptedPrivateKeyInfo(key);
+        SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(encryptedPrivateKeyInfo.getAlgName());
+        PBEKeySpec pbeKeySpec = new PBEKeySpec(password);
+        SecretKey pbeKey = keyFactory.generateSecret(pbeKeySpec);
+
+        Cipher cipher = Cipher.getInstance(encryptedPrivateKeyInfo.getAlgName());
+        cipher.init(Cipher.DECRYPT_MODE, pbeKey, encryptedPrivateKeyInfo.getAlgParameters());
+
+        return encryptedPrivateKeyInfo.getKeySpec(cipher);
     }
 }

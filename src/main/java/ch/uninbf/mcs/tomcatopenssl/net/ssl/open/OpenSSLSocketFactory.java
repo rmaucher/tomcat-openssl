@@ -6,6 +6,8 @@
 package ch.uninbf.mcs.tomcatopenssl.net.ssl.open;
 
 import ch.uninbf.mcs.tomcatopenssl.net.OpenSSLEndpoint;
+import static ch.uninbf.mcs.tomcatopenssl.net.ssl.open.OpenSSLContext.generateKeySpec;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -14,7 +16,14 @@ import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.security.KeyFactory;
 import java.security.KeyStore;
+import java.security.PrivateKey;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -23,6 +32,7 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLSessionContext;
 import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509KeyManager;
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
@@ -40,22 +50,28 @@ import org.apache.tomcat.util.res.StringManager;
  *
  * @author leo
  */
-public class OpenSSLSocketFactory implements SSLUtil, ServerSocketFactory{
+public class OpenSSLSocketFactory implements SSLUtil, ServerSocketFactory {
 
     private final AbstractEndpoint<?> endpoint;
-    public OpenSSLEndpoint getEndpoint() { return (OpenSSLEndpoint) endpoint; }
+
+    public OpenSSLEndpoint getEndpoint() {
+        return (OpenSSLEndpoint) endpoint;
+    }
     private static final Log log = LogFactory.getLog(OpenSSLSocketFactory.class);
-    
+
     private static final String defaultKeystoreFile
-        = System.getProperty("user.home") + "/.keystore";
+            = System.getProperty("user.home") + "/.keystore";
+    private TrustManagerFactory trustManagerFactory;
     
+    private static final String CONTEXT_NAME = "ch.uninbf.mcs.tomcatopenssl.net.ssl.open.OpenSSLContext";
+
     public OpenSSLSocketFactory(AbstractEndpoint<?> endPoint) {
         this.endpoint = endPoint;
     }
-    
+
     @Override
     public SslContext createSSLContext() throws Exception {
-        OpenSSLContext context = (OpenSSLContext) SslContext.getInstance("ch.uninbf.mcs.tomcatopenssl.net.ssl.open.OpenSSLContext", endpoint.getSslProtocol());
+        OpenSSLContext context = (OpenSSLContext) SslContext.getInstance(CONTEXT_NAME, endpoint.getSslProtocol());
         String requestedCiphersStr = endpoint.getCiphers();
         List<String> requestedCiphers = null;
         if (requestedCiphersStr.indexOf(':') != -1) {
@@ -64,12 +80,12 @@ public class OpenSSLSocketFactory implements SSLUtil, ServerSocketFactory{
         context.setRequestedCiphers(requestedCiphers);
         context.setSessionTimeout(getSessionConfig(endpoint.getSessionTimeout()));
         context.setSessionCacheSize(getSessionConfig(endpoint.getSessionCacheSize()));
-        
+
         return context;
     }
-    
+
     private long getSessionConfig(String config) {
-        if(config == null)  {
+        if (config == null) {
             return 0;
         }
         return Long.parseLong(config);
@@ -77,7 +93,7 @@ public class OpenSSLSocketFactory implements SSLUtil, ServerSocketFactory{
 
     @Override
     public KeyManager[] getKeyManagers() throws Exception {
-        KeyManager[] managers = { new OpenSSLKeyManager(getEndpoint().getCertChainFile(), getEndpoint().getKeyFile()) };
+        KeyManager[] managers = {new OpenSSLKeyManager(getEndpoint().getCertChainFile(), getEndpoint().getKeyFile())};
         return managers;
 //        String keystoreType = endpoint.getKeystoreType();
 //        if (keystoreType == null) {
@@ -92,14 +108,14 @@ public class OpenSSLSocketFactory implements SSLUtil, ServerSocketFactory{
 //        return getKeyManagers(keystoreType, endpoint.getKeystoreProvider(),
 //                algorithm, endpoint.getKeyAlias());
     }
-    
+
     private void checkFileExists(File file) throws IOException {
-        if(!file.exists()) {
+        if (!file.exists()) {
             log.error("The file " + file + " do not exists");
             throw new FileNotFoundException();
         }
     }
-    
+
 //    /**
 //     * Gets the initialized key managers.
 //     */
@@ -218,10 +234,63 @@ public class OpenSSLSocketFactory implements SSLUtil, ServerSocketFactory{
 //
 //        return ks;
 //    }
-
     @Override
     public TrustManager[] getTrustManagers() throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        try {
+            OpenSSLKeyManager keyManager = OpenSSLContext.chooseKeyManager(getKeyManagers());
+            File keyFile = keyManager.getPrivateKey();
+            File certChainFile = keyManager.getCertificateChain();
+            KeyStore ks = KeyStore.getInstance("JKS");
+            
+            ks.load(null, null);
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            KeyFactory rsaKF = KeyFactory.getInstance("RSA");
+            KeyFactory dsaKF = KeyFactory.getInstance("DSA");
+
+            char[] keyPasswordChars = getKeystorePassword().toCharArray();
+            PKCS8EncodedKeySpec encodedKeySpec = generateKeySpec(keyPasswordChars, PemReader.readPrivateKey(keyFile));
+
+            PrivateKey key;
+            try {
+                key = rsaKF.generatePrivate(encodedKeySpec);
+            } catch (InvalidKeySpecException ignore) {
+                key = dsaKF.generatePrivate(encodedKeySpec);
+            }
+
+            List<Certificate> certChain = new ArrayList<>();
+            ByteBuffer[] certs = PemReader.readCertificates(certChainFile);
+
+            for (ByteBuffer buf : certs) {
+                if (buf.hasArray()) {
+                    throw new Exception("unable to read the content of the certificate");
+                }
+                certChain.add(cf.generateCertificate(new ByteArrayInputStream(buf.array())));
+            }
+
+            ks.setKeyEntry("key", key, keyPasswordChars, certChain.toArray(new Certificate[certChain.size()]));
+
+            if (trustManagerFactory == null) {
+                // Mimic the way SSLContext.getInstance(KeyManager[], null, null) works
+                trustManagerFactory = TrustManagerFactory.getInstance(
+                        TrustManagerFactory.getDefaultAlgorithm());
+                trustManagerFactory.init((KeyStore) null);
+            } else {
+                trustManagerFactory.init(ks);
+            }
+        } catch (Exception e) {
+        }
+        return trustManagerFactory.getTrustManagers();
+    }
+    
+    protected String getKeystorePassword() {
+        String keystorePass = endpoint.getKeystorePass();
+        if (keystorePass == null) {
+            keystorePass = endpoint.getKeyPass();
+        }
+        if (keystorePass == null) {
+            keystorePass = DEFAULT_KEY_PASS;
+        }
+        return keystorePass;
     }
 
     @Override
@@ -262,5 +331,5 @@ public class OpenSSLSocketFactory implements SSLUtil, ServerSocketFactory{
     @Override
     public void handshake(Socket sock) throws IOException {
     }
-    
+
 }
