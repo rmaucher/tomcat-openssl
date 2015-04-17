@@ -82,11 +82,11 @@
     <Connector port="8080" protocol="ch.uninbf.mcs.tomcatopenssl.Http11OpenSSLNio2Protocol"
                maxThreads="150" scheme="https" secure="true"
                clientAuth="false" sslProtocol="TLS" 
-	       keystoreFile="/Users/leo/Documents/uni/master/jboss/tomcat/output/build/conf/keystore"
 	       keystorePass="password"
                connectionTimeout="20000"
                redirectPort="8443"
-               CertificatFile="/Users/leo/Documents/uni/master/jboss/tomcat/output/build/conf/keystore"
+               CertChainFile="/Users/leo/Documents/uni/master/jboss/tomcat/output/build/conf/localhost-cert.pem"
+               KeyFile="/Users/leo/Documents/uni/master/jboss/tomcat/output/build/conf/localhost-key.pem"
     />
     <!-- A "Connector" using the shared thread pool-->
     <!--

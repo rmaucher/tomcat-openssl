@@ -65,6 +65,8 @@
         <copy file="${jar.native.path}" toDir="${tomcat.lib}" overwrite="true"/>
         <copy file="resources/server.xml" toDir="${tomcat.conf}" overwrite="true"/>
         <copy file="resources/keystore" toDir="${tomcat.conf}" overwrite="true" force="true"/>
+        <copy file="resources/localhost-cert.pem" toDir="${tomcat.conf}" overwrite="true" force="true"/>
+        <copy file="resources/localhost-key.pem" toDir="${tomcat.conf}" overwrite="true" force="true"/>
         <copy file="resources/logging.properties" toDir="${tomcat.conf}" overwrite="true" force="true"/>
     </target>
     <target name="run" depends="deploy">
