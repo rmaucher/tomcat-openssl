@@ -66,6 +66,8 @@ public class OpenSSLContext extends SslContext {
 
     private static final List<String> DEFAULT_CIPHERS;
     private static final List<String> AVAILABLE_PROTOCOLS = new ArrayList<>();
+    
+    private OpenSslServerSessionContext sessionContext;
 
     private List<String> ciphers = new ArrayList<>();
 
@@ -175,7 +177,7 @@ public class OpenSSLContext extends SslContext {
         }
     }
 
-    private void determineCiphers(List<String> ciphers) {
+    public void determineCiphers(List<String> ciphers) {
         if (ciphers == null) {
             ciphers = DEFAULT_CIPHERS;
         }
@@ -203,16 +205,41 @@ public class OpenSSLContext extends SslContext {
                 // TODO-done: determine how to implemenet -> probably like netty
                 // TODO-done: implement a similar way
                  /* Load the certificate file and private key. */
-                if(kms != null && tms != null) {
-                    init(kms, tms);
+                if(kms != null) {
+                    init(kms);
                 }
+                if(tms != null) {
+                    init(tms);
+                }
+                sessionContext = new OpenSslServerSessionContext(ctx);
             } catch (SSLException ex) {
                 //TODO: catch exception
             }
         }
     }
+    
+    private void init(TrustManager[] tms) {
+        try {
 
-    private void init(KeyManager[] kms, TrustManager[] tms) throws SSLException {
+            final X509TrustManager manager = chooseTrustManager(tms);
+            SSLContext.setCertVerifyCallback(ctx, new CertificateVerifier() {
+                @Override
+                public boolean verify(long ssl, byte[][] chain, String auth) {
+                    X509Certificate[] peerCerts = certificates(chain);
+                    try {
+                        manager.checkClientTrusted(peerCerts, auth);
+                        return true;
+                    } catch (Exception e) {
+                        logger.debug("verification of certificate failed", e);
+                    }
+                    return false;
+                }
+            });
+        } catch (Exception e) {
+        }
+    }
+
+    private void init(KeyManager[] kms) throws SSLException {
         File certChainFile = null;
         File keyFile = null;
         try {
@@ -231,24 +258,6 @@ public class OpenSSLContext extends SslContext {
             throw e;
         } catch (Exception e) {
             throw new SSLException("failed to set certificate: " + certChainFile + " and " + keyFile, e);
-        }
-        try {
-
-            final X509TrustManager manager = chooseTrustManager(tms);
-            SSLContext.setCertVerifyCallback(ctx, new CertificateVerifier() {
-                @Override
-                public boolean verify(long ssl, byte[][] chain, String auth) {
-                    X509Certificate[] peerCerts = certificates(chain);
-                    try {
-                        manager.checkClientTrusted(peerCerts, auth);
-                        return true;
-                    } catch (Exception e) {
-                        logger.debug("verification of certificate failed", e);
-                    }
-                    return false;
-                }
-            });
-        } catch (Exception e) {
         }
     }
 
@@ -314,12 +323,12 @@ public class OpenSSLContext extends SslContext {
 
     @Override
     public SSLSessionContext getServerSessionContext() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return sessionContext;
     }
 
     @Override
     public SSLEngine createSSLEngine() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+         return new OpenSslEngine(ctx, defaultProtocol, false, sessionContext);
     }
 
     @Override
@@ -339,7 +348,6 @@ public class OpenSSLContext extends SslContext {
         } else {
             enabledProtocol = protocol;
         }
-        log.error(protocol);
     }
 
     /**

@@ -13,9 +13,7 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-
 package ch.uninbf.mcs.tomcatopenssl.net.ssl.open;
-
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -29,15 +27,16 @@ import java.security.KeyException;
 import java.security.KeyStore;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
+import org.apache.tomcat.util.codec.binary.Base64;
 
 /**
- * Reads a PEM file and converts it into a list of DERs so that they are imported into a {@link KeyStore} easily.
+ * Reads a PEM file and converts it into a list of DERs so that they are
+ * imported into a {@link KeyStore} easily.
  */
 final class PemReader {
 
@@ -45,13 +44,13 @@ final class PemReader {
 
     private static final Pattern CERT_PATTERN = Pattern.compile(
             "-+BEGIN\\s+.*CERTIFICATE[^-]*-+(?:\\s|\\r|\\n)+" + // Header
-                    "([a-z0-9+/=\\r\\n]+)" +                    // Base64 text
-                    "-+END\\s+.*CERTIFICATE[^-]*-+",            // Footer
+            "([a-z0-9+/=\\r\\n]+)" + // Base64 text
+            "-+END\\s+.*CERTIFICATE[^-]*-+", // Footer
             Pattern.CASE_INSENSITIVE);
     private static final Pattern KEY_PATTERN = Pattern.compile(
             "-+BEGIN\\s+.*PRIVATE\\s+KEY[^-]*-+(?:\\s|\\r|\\n)+" + // Header
-                    "([a-z0-9+/=\\r\\n]+)" +                       // Base64 text
-                    "-+END\\s+.*PRIVATE\\s+KEY[^-]*-+",            // Footer
+            "([a-z0-9+/=\\r\\n]+)" + // Base64 text
+            "-+END\\s+.*PRIVATE\\s+KEY[^-]*-+", // Footer
             Pattern.CASE_INSENSITIVE);
 
     static ByteBuffer[] readCertificates(File file) throws CertificateException {
@@ -81,10 +80,10 @@ final class PemReader {
 
         return certs.toArray(new ByteBuffer[certs.size()]);
     }
-    
+
     private static ByteBuffer decodeBase64(String decoding) {
         ByteBuffer base64 = ByteBuffer.wrap(decoding.getBytes(Charset.forName("US-ASCII")));
-        return Base64.getDecoder().decode(base64);
+        return java.util.Base64.getDecoder().decode(base64);
     }
 
     static byte[] readPrivateKey(File file) throws KeyException {
@@ -100,8 +99,13 @@ final class PemReader {
             throw new KeyException("found no private key: " + file);
         }
 
-        byte[] base64 = m.group(1).getBytes(Charset.forName("US-ASCII"));
-        return Base64.getDecoder().decode(base64);
+        try {
+            byte[] base64 = m.group(1).getBytes(Charset.forName("US-ASCII"));
+            return Base64.decodeBase64(base64);
+//            return base64;
+        } catch (IllegalArgumentException e) {
+            throw new KeyException("Failed to decode the key", e);
+        }
     }
 
     private static String readContent(File file) throws IOException {
@@ -139,5 +143,6 @@ final class PemReader {
         }
     }
 
-    private PemReader() { }
+    private PemReader() {
+    }
 }

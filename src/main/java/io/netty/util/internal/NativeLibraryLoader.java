@@ -167,8 +167,6 @@ public final class NativeLibraryLoader {
             }
         }
 
-        logger.error("url: " + url);
-
         if (url == null) {
             // Fall back to normal loading of JNI stuff
             System.loadLibrary(name);

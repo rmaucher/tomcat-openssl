@@ -19,6 +19,6 @@ public class OpenSSLProtocols {
             openSSLProtocols.remove(preferredJSSE);
             openSSLProtocols.add(0, preferredJSSE);
         }
-        return (String[]) openSSLProtocols.toArray();
+        return openSSLProtocols.toArray(new String[openSSLProtocols.size()]);
     }
 }

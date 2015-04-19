@@ -27,7 +27,9 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.logging.Level;
 import java.util.logging.LogManager;
+import java.util.logging.Logger;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLSessionContext;
@@ -62,22 +64,33 @@ public class OpenSSLSocketFactory implements SSLUtil, ServerSocketFactory {
     private static final String defaultKeystoreFile
             = System.getProperty("user.home") + "/.keystore";
     private TrustManagerFactory trustManagerFactory;
-    
+    private String[] enabledProtocols = null;
+    private String[] enabledCiphers = null;
+
     private static final String CONTEXT_NAME = "ch.uninbf.mcs.tomcatopenssl.net.ssl.open.OpenSSLContext";
 
     public OpenSSLSocketFactory(AbstractEndpoint<?> endPoint) {
         this.endpoint = endPoint;
+        try { 
+            OpenSSLContext context = (OpenSSLContext) SslContext.getInstance(CONTEXT_NAME, endpoint.getSslProtocol());
+            this.enabledProtocols = OpenSSLProtocols.getProtocols(context.getEnabledProtocol());
+            List<String> requestedCiphers = null;
+            String requestedCiphersStr = endpoint.getCiphers();
+            if (requestedCiphersStr.indexOf(':') != -1) {
+                requestedCiphers = OpenSSLCipherConfigurationParser.parseExpression(requestedCiphersStr);
+            }
+            context.setRequestedCiphers(requestedCiphers);
+            context.determineCiphers(requestedCiphers);
+            List<String> enabledCiphers = context.getCiphers();
+            this.enabledCiphers = enabledCiphers.toArray(new String[enabledCiphers.size()]);
+        } catch (ClassNotFoundException ex) {
+            log.debug("Unalble to determine ciphers and protcols");
+        }
     }
 
     @Override
     public SslContext createSSLContext() throws Exception {
         OpenSSLContext context = (OpenSSLContext) SslContext.getInstance(CONTEXT_NAME, endpoint.getSslProtocol());
-        String requestedCiphersStr = endpoint.getCiphers();
-        List<String> requestedCiphers = null;
-        if (requestedCiphersStr.indexOf(':') != -1) {
-            requestedCiphers = OpenSSLCipherConfigurationParser.parseExpression(requestedCiphersStr);
-        }
-        context.setRequestedCiphers(requestedCiphers);
         context.setSessionTimeout(getSessionConfig(endpoint.getSessionTimeout()));
         context.setSessionCacheSize(getSessionConfig(endpoint.getSessionCacheSize()));
 
@@ -236,52 +249,55 @@ public class OpenSSLSocketFactory implements SSLUtil, ServerSocketFactory {
 //    }
     @Override
     public TrustManager[] getTrustManagers() throws Exception {
-        try {
-            OpenSSLKeyManager keyManager = OpenSSLContext.chooseKeyManager(getKeyManagers());
-            File keyFile = keyManager.getPrivateKey();
-            File certChainFile = keyManager.getCertificateChain();
-            KeyStore ks = KeyStore.getInstance("JKS");
-            
-            ks.load(null, null);
-            CertificateFactory cf = CertificateFactory.getInstance("X.509");
-            KeyFactory rsaKF = KeyFactory.getInstance("RSA");
-            KeyFactory dsaKF = KeyFactory.getInstance("DSA");
-
-            char[] keyPasswordChars = getKeystorePassword().toCharArray();
-            PKCS8EncodedKeySpec encodedKeySpec = generateKeySpec(keyPasswordChars, PemReader.readPrivateKey(keyFile));
-
-            PrivateKey key;
-            try {
-                key = rsaKF.generatePrivate(encodedKeySpec);
-            } catch (InvalidKeySpecException ignore) {
-                key = dsaKF.generatePrivate(encodedKeySpec);
-            }
-
-            List<Certificate> certChain = new ArrayList<>();
-            ByteBuffer[] certs = PemReader.readCertificates(certChainFile);
-
-            for (ByteBuffer buf : certs) {
-                if (buf.hasArray()) {
-                    throw new Exception("unable to read the content of the certificate");
-                }
-                certChain.add(cf.generateCertificate(new ByteArrayInputStream(buf.array())));
-            }
-
-            ks.setKeyEntry("key", key, keyPasswordChars, certChain.toArray(new Certificate[certChain.size()]));
-
-            if (trustManagerFactory == null) {
-                // Mimic the way SSLContext.getInstance(KeyManager[], null, null) works
-                trustManagerFactory = TrustManagerFactory.getInstance(
-                        TrustManagerFactory.getDefaultAlgorithm());
-                trustManagerFactory.init((KeyStore) null);
-            } else {
-                trustManagerFactory.init(ks);
-            }
-        } catch (Exception e) {
-        }
-        return trustManagerFactory.getTrustManagers();
+//        try {
+//            OpenSSLKeyManager keyManager = OpenSSLContext.chooseKeyManager(getKeyManagers());
+//            File keyFile = keyManager.getPrivateKey();
+//            File certChainFile = keyManager.getCertificateChain();
+//            KeyStore ks = KeyStore.getInstance("JKS");
+//            
+//            ks.load(null, null);
+//            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+//            KeyFactory rsaKF = KeyFactory.getInstance("RSA");
+//            KeyFactory dsaKF = KeyFactory.getInstance("DSA");
+//
+//            char[] keyPasswordChars = getKeystorePassword().toCharArray();
+//            PKCS8EncodedKeySpec encodedKeySpec = generateKeySpec(keyPasswordChars, PemReader.readPrivateKey(keyFile));
+//
+//            PrivateKey key;
+//            try {
+//                key = rsaKF.generatePrivate(encodedKeySpec);
+//            } catch (InvalidKeySpecException ignore) {
+//                key = dsaKF.generatePrivate(encodedKeySpec);
+//            }
+//
+//            List<Certificate> certChain = new ArrayList<>();
+//            ByteBuffer[] certs = PemReader.readCertificates(certChainFile);
+//
+//            for (ByteBuffer buf : certs) {
+//                if (buf.hasArray()) {
+//                    throw new Exception("unable to read the content of the certificate");
+//                }
+//                certChain.add(cf.generateCertificate(new ByteArrayInputStream(buf.array())));
+//            }
+//
+//            ks.setKeyEntry("key", key, keyPasswordChars, certChain.toArray(new Certificate[certChain.size()]));
+//
+//            if (trustManagerFactory == null) {
+//                // Mimic the way SSLContext.getInstance(KeyManager[], null, null) works
+//                trustManagerFactory = TrustManagerFactory.getInstance(
+//                        TrustManagerFactory.getDefaultAlgorithm());
+//                trustManagerFactory.init((KeyStore) null);
+//            } else {
+//                trustManagerFactory.init(ks);
+//            }
+//        } catch (Exception e) {
+//            log.error("Failed to set up trustManagers: ", e);
+//            throw e;
+//        }
+//        return trustManagerFactory.getTrustManagers();
+        return null;
     }
-    
+
     protected String getKeystorePassword() {
         String keystorePass = endpoint.getKeystorePass();
         if (keystorePass == null) {
@@ -300,12 +316,12 @@ public class OpenSSLSocketFactory implements SSLUtil, ServerSocketFactory {
 
     @Override
     public String[] getEnableableCiphers(SslContext context) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return this.enabledCiphers;
     }
 
     @Override
     public String[] getEnableableProtocols(SslContext context) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return this.enabledProtocols;
     }
 
     @Override
