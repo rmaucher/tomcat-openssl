@@ -27,7 +27,7 @@ When building this project, [some files](https://github.com/facenord-sud/tomcat-
 
 ### Details
 1. [Build](https://tomcat.apache.org/tomcat-8.0-doc/building.html) Tomcat 8.0.21
-2. Configure the file `build.properties` to indicate where Tomcat is located, openssl and apr
+2. Configure the file `build.properties` to indicate where Tomcat, OpenSSL and APR is located
 3. Build the native C extension:
   * `cd src/main/c`
   * `./configure --with-apr=apr_install_path --with-ssl=openssl_install_path`
@@ -44,6 +44,6 @@ When building this project, [some files](https://github.com/facenord-sud/tomcat-
 
 ## Code organization
 
-The code under `org.apache.tomcat.tomcatopenssl.jni.*` is copied as is from the tc-netty. To compile it you need to follow the instructions provided here: https://github.com/netty/netty/wiki/Forked-Tomcat-Native
+The code under `org.apache.tomcat.tomcatopenssl.jni.*` is copied as is from the tc-netty. But the build system is copied from tc-native. To compile it you need to follow the instructions provided here: https://github.com/facenord-sud/tomcat-openssl/blob/master/src/main/c/BUILDING
 
 The code uner `io.netty.*` is copied from netty
