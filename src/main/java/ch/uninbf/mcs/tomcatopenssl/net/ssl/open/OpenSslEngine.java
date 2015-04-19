@@ -623,7 +623,7 @@ public final class OpenSslEngine extends SSLEngine {
             closeOutbound();
             closeInbound();
         }
-        
+        logger.error("UNWRAP");
         return new SSLEngineResult(getEngineStatus(), getHandshakeStatus(), bytesConsumed, bytesProduced);
     }
 
@@ -1118,6 +1118,7 @@ public final class OpenSslEngine extends SSLEngine {
 
     @Override
     public synchronized void beginHandshake() throws SSLException {
+        logger.error("akéBFJDFJKSBéKSD");
         if (engineClosed || destroyed != 0) {
             throw ENGINE_CLOSED;
         }
@@ -1154,6 +1155,7 @@ public final class OpenSslEngine extends SSLEngine {
     }
 
     private void handshake() throws SSLException {
+        logger.error("HANDSHAKING");
         int code = SSL.doHandshake(ssl);
         if (code <= 0) {
             // Check for OpenSSL errors caused by the handshake
