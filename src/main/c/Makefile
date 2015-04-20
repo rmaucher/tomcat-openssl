@@ -19,8 +19,8 @@
 # Top-level Makefile for TCNATIVE
 #
 
-CFLAGS = -g -O2 -DHAVE_OPENSSL
-CPPFLAGS = -I/usr/local/opt/openssl/include 
+CFLAGS = -g -O2 -DHAVE_OPENSSL -DHAVE_POOL_PRE_CLEANUP -DHAVE_POOL_UNMANAGED -DHAVE_POLLSET_WAKEUP
+CPPFLAGS = 
 
 # gets substituted into some targets
 TCNATIVE_MAJOR_VERSION=1
@@ -31,12 +31,12 @@ srcdir = .
 
 
 # this sucks, but it's the only way to add extra flags to the LT_COMPILE
-INCLUDES = -g -O2 -DHAVE_OPENSSL -I/usr/local/opt/openssl/include   -I/Users/leo/Documents/uni/master/jboss/tomcat-openssl/src/main/c/include -I/Library/Java/JavaVirtualMachines/jdk1.8.0_25.jdk/Contents/Home/include -I/Library/Java/JavaVirtualMachines/jdk1.8.0_25.jdk/Contents/Home/include/darwin -I/usr/local/Cellar/openssl/1.0.2a-1//include  -I/usr/local/Cellar/apr/1.5.1/libexec/include/apr-1 
-TCNATIVE_LDFLAGS = -L/usr/local/Cellar/openssl/1.0.2a-1//lib -lssl -lcrypto -L/usr/local/opt/openssl/lib
-TCNATIVE_LIBS =  /usr/local/Cellar/apr/1.5.1/libexec/lib/libapr-1.la -lpthread
+INCLUDES = -g -O2 -DHAVE_OPENSSL -DHAVE_POOL_PRE_CLEANUP -DHAVE_POOL_UNMANAGED -DHAVE_POLLSET_WAKEUP   -I/home/remm/Work/jbossweb/tomcat-openssl/src/main/c/include -I/home/remm/Work/jdk1.8.0.31-5.fweimer1/include -I/home/remm/Work/jdk1.8.0.31-5.fweimer1/include/linux  -I/usr/include/apr-1 
+TCNATIVE_LDFLAGS = -lssl -lcrypto
+TCNATIVE_LIBS =  /usr/lib64/libapr-1.la  -lpthread -ldl
 
 TARGET_LIB = libtcnative-${TCNATIVE_MAJOR_VERSION}.la
-EXTRA_OS_LINK=$(TCNATIVE_LDFLAGS) $(TCNATIVE_LIBS)
+EXTRA_OS_LINK=
 TCNATIVE_PCFILE = tcnative-$(TCNATIVE_MAJOR_VERSION).pc
 INSTALL = /usr/bin/install -c
 INSTALL_DATA = ${INSTALL} -m 644
@@ -44,8 +44,8 @@ INSTALL_DATA = ${INSTALL} -m 644
 TARGETS = $(TARGET_LIB)
 
 # bring in rules.mk for standard functionality
-include /Users/leo/Documents/uni/master/jboss/tomcat-openssl/src/main/c/build/rules.mk
-include /Users/leo/Documents/uni/master/jboss/tomcat-openssl/src/main/c/build-outputs.mk
+include /home/remm/Work/jbossweb/tomcat-openssl/src/main/c/build/rules.mk
+include /home/remm/Work/jbossweb/tomcat-openssl/src/main/c/build-outputs.mk
 
 LINK          = $(LIBTOOL) $(LTFLAGS) --mode=link $(LT_LDFLAGS) $(COMPILE) -version-info $(TCNATIVE_LIBTOOL_VERSION) $(ALL_LDFLAGS) -o $@
 CLEAN_SUBDIRS = test
@@ -62,8 +62,8 @@ exec_prefix=${prefix}
 bindir=${exec_prefix}/bin
 libdir=${exec_prefix}/lib
 includedir=${prefix}/include/apr-${TCNATIVE_MAJOR_VERSION}
-top_srcdir=/Users/leo/Documents/uni/master/jboss/tomcat-openssl/src/main/c
-top_blddir=/Users/leo/Documents/uni/master/jboss/tomcat-openssl/src/main/c
+top_srcdir=/home/remm/Work/jbossweb/tomcat-openssl/src/main/c
+top_blddir=/home/remm/Work/jbossweb/tomcat-openssl/src/main/c
 
 
 install: $(TARGET_LIB)
@@ -76,7 +76,7 @@ install: $(TARGET_LIB)
 	$(LIBTOOL) --mode=install $(INSTALL) -m 755 $(TARGET_LIB) $(DESTDIR)$(libdir)
 
 $(TARGET_LIB): $(OBJECTS)
-	$(LINK) -rpath $(libdir) $(OBJECTS) -L/usr/local/Cellar/openssl/1.0.2a-1//lib -lssl -lcrypto -L/usr/local/opt/openssl/lib  /usr/local/Cellar/apr/1.5.1/libexec/lib/libapr-1.la -lpthread
+	$(LINK) -rpath $(libdir) $(OBJECTS) -lssl -lcrypto  /usr/lib64/libapr-1.la  -lpthread -ldl
 
 check: $(TARGET_LIB)
 	(cd test && $(MAKE) check)

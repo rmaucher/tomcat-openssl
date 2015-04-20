@@ -605,7 +605,6 @@ CC
 JAVA_OS
 JAVA_PLATFORM
 JAVA_HOME
-SABLEVM
 APR_BUILD_DIR
 APR_LIBS
 APR_INCLUDES
@@ -675,10 +674,8 @@ enable_option_checking
 enable_layout
 with_apr
 with_java_home
-with_java_platform
 with_os_type
 enable_openssl
-enable_ocsp
 with_ssl
 enable_openssl_version_check
 enable_maintainer_mode
@@ -1305,7 +1302,6 @@ Optional Features:
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --enable-layout=LAYOUT
   --disable-openssl       avoid using OpenSSL toolkit
-  --enable-ocsp           Turn on OpenSSL OCSP verification support
   --enable-openssl-version-check
                           Check OpenSSL Version [default=yes]
   --enable-maintainer-mode   Turn on debugging and compile time warnings
@@ -1315,10 +1311,8 @@ Optional Packages:
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-apr=PATH         prefix for installed APR or the full path to
                              apr-config
-  --with-java-home=DIR     Location of JDK directory.
-  --with-java-platform=2 Force the Java platform
-                                 (value is 1 for 1.1.x or 2 for 1.2.x or greater)
-  --with-os-type=SUBDIR  Location of JDK os-type subdirectory.
+  --with-java-home=DIR     Specify the location of your JDK installation
+  --with-os-type=SUBDIR   Location of JDK os-type subdirectory.
   --with-ssl=PATH   Build with OpenSSL yes|no|path
 
 Some influential environment variables:
@@ -1489,6 +1483,52 @@ fi
   as_fn_set_status $ac_retval
 
 } # ac_fn_c_try_run
+
+# ac_fn_c_try_link LINENO
+# -----------------------
+# Try to link conftest.$ac_ext, and return whether this succeeded.
+ac_fn_c_try_link ()
+{
+  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+  rm -f conftest.$ac_objext conftest$ac_exeext
+  if { { ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
+$as_echo "$ac_try_echo"; } >&5
+  (eval "$ac_link") 2>conftest.err
+  ac_status=$?
+  if test -s conftest.err; then
+    grep -v '^ *+' conftest.err >conftest.er1
+    cat conftest.er1 >&5
+    mv -f conftest.er1 conftest.err
+  fi
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext && {
+	 test "$cross_compiling" = yes ||
+	 test -x conftest$ac_exeext
+       }; then :
+  ac_retval=0
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_retval=1
+fi
+  # Delete the IPA/IPO (Inter Procedural Analysis/Optimization) information
+  # created by the PGI compiler (conftest_ipa8_conftest.oo), as it would
+  # interfere with the next link command; also delete a directory that is
+  # left behind by Apple's compiler.  We do this before executing the actions.
+  rm -rf conftest.dSYM conftest_ipa8_conftest.oo
+  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
+  as_fn_set_status $ac_retval
+
+} # ac_fn_c_try_link
 cat >config.log <<_ACEOF
 This file contains any messages produced by compilers while
 running configure, to aid debugging if configure makes a mistake.
@@ -1964,8 +2004,6 @@ ac_configure="$SHELL $ac_aux_dir/configure"  # Please don't use this var.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-
 
 
 
@@ -2570,7 +2608,7 @@ if test "${with_apr+set}" = set; then :
 
 else
 
-        if test -n "" && test "" = "1"; then
+        if test -n "1" && test "1" = "1"; then
       for apr_temp_apr_config_file in $apr_temp_acceptable_apr_config
       do
         if $apr_temp_apr_config_file --help > /dev/null 2>&1 ; then
@@ -2618,26 +2656,28 @@ fi
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: $apr_found" >&5
 $as_echo "$apr_found" >&6; }
 
-  if test "$apr_found" = "no"; then
+  if test "$apr_found" = "no"
+  then
     as_fn_error $? "APR could not be located. Please use the --with-apr option." "$LINENO" 5
   fi
 
   sapr_pversion="`$apr_config --version`"
-  if test -z "$sapr_pversion"; then
+  if test -z "$sapr_pversion"
+  then
     as_fn_error $? "APR config could not be located. Please use the --with-apr option." "$LINENO" 5
   fi
   sapr_version="`echo $sapr_pversion|sed -e 's/\(a-z*\)$/.\1/'`"
-  tc_save_IFS=$IFS; IFS=.; set $sapr_version; IFS=$tc_save_IFS
-  if test "${1}" -lt "1"; then
-    as_fn_error $? "You need APR version 1.2.1 or newer installed. For optimal performance version 1.3.0 or newer is needed." "$LINENO" 5
-  else
-    if test "${2}" -lt "2"; then
-      as_fn_error $? "You need APR version 1.2.1 or newer installed. For optimal performance version 1.3.0 or newer is needed." "$LINENO" 5
-    elif test "${2}" -lt "3"; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: For optimal performance you need APR version 1.3.0 or newer installed." >&5
-$as_echo "$as_me: WARNING: For optimal performance you need APR version 1.3.0 or newer installed." >&2;}
-    fi
+  tc_save_IFS=$IFS
+  IFS=.
+  set $sapr_version
+  IFS=$tc_save_IFS
+  decimal_apr_version=`printf %02d%02d%03d ${1} ${2} ${3}`
+  if test "${decimal_apr_version}" -lt "0104003"
+  then
+    as_fn_error $? "Found APR $sapr_version. You need version 1.4.3 or newer installed." "$LINENO" 5
   fi
+  { $as_echo "$as_me:${as_lineno-$LINENO}: APR $sapr_version detected." >&5
+$as_echo "$as_me: APR $sapr_version detected." >&6;}
 
   APR_BUILD_DIR="`$apr_config --installbuilddir`"
 
@@ -2670,216 +2710,48 @@ $as_echo "$as_me: WARNING: For optimal performance you need APR version 1.3.0 or
 
 NEED_JNI_MD=yes
 
-    tempval=""
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for JDK location (please wait)" >&5
-$as_echo_n "checking for JDK location (please wait)... " >&6; }
-    if test -n "${JAVA_HOME}" ; then
-      JAVA_HOME_ENV="${JAVA_HOME}"
-    else
-      JAVA_HOME_ENV=""
-    fi
-
-    JAVA_HOME=""
-    JAVA_PLATFORM=""
-
 
 # Check whether --with-java-home was given.
 if test "${with_java_home+set}" = set; then :
   withval=$with_java_home;
-
-      # This stuff works if the command line parameter --with-java-home was
-      # specified, so it takes priority rightfully.
-
-      tempval=${withval}
-
-      if test ! -d "${tempval}" ; then
-          as_fn_error $? "Not a directory: ${tempval}" "$LINENO" 5
-      fi
-
-      JAVA_HOME=${tempval}
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${JAVA_HOME}" >&5
-$as_echo "${JAVA_HOME}" >&6; }
-
-else
-
-      # This works if the parameter was NOT specified, so it's a good time
-      # to see what the environment says.
-      # Since Sun uses JAVA_HOME a lot, we check it first and ignore the
-      # JAVA_HOME, otherwise just use whatever JAVA_HOME was specified.
-
-      if test -n "${JAVA_HOME_ENV}" ; then
-        JAVA_HOME=${JAVA_HOME_ENV}
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${JAVA_HOME_ENV} from environment" >&5
-$as_echo "${JAVA_HOME_ENV} from environment" >&6; }
-      fi
-
-fi
-
-
-    if test -z "${JAVA_HOME}" ; then
-
-      # Oh well, nobody set neither JAVA_HOME nor JAVA_HOME, have to guess
-      # The following code is based on the code submitted by Henner Zeller
-      # for ${srcdir}/src/scripts/package/rpm/ApacheJServ.spec
-      # Two variables will be set as a result:
-      #
-      # JAVA_HOME
-      # JAVA_PLATFORM
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking Try to guess JDK location" >&5
-$as_echo_n "checking Try to guess JDK location... " >&6; }
-
-      for JAVA_PREFIX in /usr/local /usr/local/lib /usr /usr/lib /opt /usr/java /System/Library/Frameworks/JavaVM.framework/Versions
-      do
-        for JAVA_PLATFORM in 8 7 6 5 4 3 2
-        do
-          for subversion in .9 .8 .7 .6 .5 .4 .3 .2 .1 .0 ""
-          do
-            for VARIANT in IBMJava2- diablo-jdk java java- jdk jdk- ""
-            do
-              GUESS="${JAVA_PREFIX}/${VARIANT}1.${JAVA_PLATFORM}${subversion}"
-              if test -d "${GUESS}/bin" & test -d "${GUESS}/include"
-              then
-                JAVA_HOME="${GUESS}"
-                { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${GUESS}" >&5
-$as_echo "${GUESS}" >&6; }
-                break
-              fi
-              if test -d "${GUESS}/Commands" & test -d "${GUESS}/Headers"
-              then
-                JAVA_HOME="${GUESS}"
-                { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${GUESS}" >&5
-$as_echo "${GUESS}" >&6; }
-                break
-              fi
-
-            done
-
-            if test -n "${JAVA_HOME}" ; then
-              break;
-            fi
-
-          done
-
-          if test -n "${JAVA_HOME}" ; then
-            break;
-          fi
-
-        done
-
-        if test -n "${JAVA_HOME}" ; then
-          break;
-        fi
-
-      done
-
-      if test ! -n "${JAVA_HOME}" ; then
-        as_fn_error $? "can't locate a valid JDK location" "$LINENO" 5
-      fi
-
-    fi
-
-    if test -n "${JAVA_PLATFORM}"; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: Java Platform detected - 1.${JAVA_PLATFORM}" >&5
-$as_echo "Java Platform detected - 1.${JAVA_PLATFORM}" >&6; }
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking JAVA_HOME" >&5
+$as_echo_n "checking JAVA_HOME... " >&6; }
+    if test -d "$withval"
+    then
+      JAVA_HOME="$withval"
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: $JAVA_HOME" >&5
+$as_echo "$JAVA_HOME" >&6; }
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking Java platform" >&5
-$as_echo_n "checking Java platform... " >&6; }
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: failed" >&5
+$as_echo "failed" >&6; }
+      as_fn_error $? "$withval is not a directory" "$LINENO" 5
     fi
 
 
-# Check whether --with-java-platform was given.
-if test "${with_java_platform+set}" = set; then :
-  withval=$with_java_platform;
-        case "${withval}" in
-          "1"|"2")
-            JAVA_PLATFORM=${withval}
-            ;;
-          *)
-            as_fn_error $? "invalid java platform provided" "$LINENO" 5
-            ;;
-        esac
-
-else
-
-        if test -n "${JAVA_PLATFORM}"; then
-          { $as_echo "$as_me:${as_lineno-$LINENO}: result: Java Platform detected - 1.${JAVA_PLATFORM}" >&5
-$as_echo "Java Platform detected - 1.${JAVA_PLATFORM}" >&6; }
-        else
-          { $as_echo "$as_me:${as_lineno-$LINENO}: checking Java platform" >&5
-$as_echo_n "checking Java platform... " >&6; }
-        fi
-
 fi
 
-
-     { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${JAVA_PLATFORM}" >&5
-$as_echo "${JAVA_PLATFORM}" >&6; }
-
-    unset tempval
-
-
-  if test x"$JAVA_HOME" != x
+  if test "x$JAVA_HOME" = x
   then
-    # Extract the first word of "sablevm", so it can be a program name with args.
-set dummy sablevm; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_SABLEVM+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  case $SABLEVM in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_SABLEVM="$SABLEVM" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $JAVA_HOME/bin
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_SABLEVM="$as_dir/$ac_word$ac_exec_ext"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_path_SABLEVM" && ac_cv_path_SABLEVM="NONE"
-  ;;
-esac
-fi
-SABLEVM=$ac_cv_path_SABLEVM
-if test -n "$SABLEVM"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $SABLEVM" >&5
-$as_echo "$SABLEVM" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-    if test "$SABLEVM" != "NONE"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for JDK location" >&5
+$as_echo_n "checking for JDK location... " >&6; }
+    # Oh well, nobody set JAVA_HOME, have to guess
+    # Check if we have java in the PATH.
+    java_prog="`which java 2>/dev/null || true`"
+    if test "x$java_prog" != x
     then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: Using sableVM: $SABLEVM" >&5
-$as_echo "Using sableVM: $SABLEVM" >&6; }
-      CFLAGS="$CFLAGS -DHAVE_SABLEVM"
-      NEED_JNI_MD=no
+      java_bin="`dirname $java_prog`"
+      java_top="`dirname $java_bin`"
+      if test -f "$java_top/include/jni.h"
+      then
+        JAVA_HOME="$java_top"
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${java_top}" >&5
+$as_echo "${java_top}" >&6; }
+      fi
     fi
   fi
-
-
-  if test x"$JAVA_HOME" != x
+  if test x"$JAVA_HOME" = x
   then
-    J9VM=`$JAVA_HOME/bin/java -version 2>&1 | grep J9VM`
-    if test x"$J9VM" != x
-    then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: Using J9VM: $J9VM" >&5
-$as_echo "Using J9VM: $J9VM" >&6; }
-      NEED_JNI_MD=no
-    fi
+    as_fn_error $? "Java Home not defined. Rerun with --with-java-home=... parameter" "$LINENO" 5
   fi
 
 
@@ -2912,41 +2784,43 @@ fi
 
 if test "$NEED_JNI_MD" = "yes"; then
 
-    tempval=""
-    JAVA_OS=""
+  tempval=""
+  JAVA_OS=""
 
 # Check whether --with-os-type was given.
 if test "${with_os_type+set}" = set; then :
   withval=$with_os_type;
-        tempval=${withval}
-
-        if test ! -d "${JAVA_HOME}/${tempval}" ; then
-          as_fn_error $? "Not a directory: ${JAVA_HOME}/${tempval}" "$LINENO" 5
-        fi
-
-        JAVA_OS = ${tempval}
+    tempval=$withval
+    if test ! -d "$JAVA_HOME/$tempval"
+    then
+      as_fn_error $? "Not a directory: ${JAVA_HOME}/${tempval}" "$LINENO" 5
+    fi
+    JAVA_OS=$tempval
 
 else
 
-        { $as_echo "$as_me:${as_lineno-$LINENO}: checking os_type directory" >&5
-$as_echo_n "checking os_type directory... " >&6; }
-        JAVA_OS=NONE
-        if test -f ${JAVA_HOME}/${JAVA_INC}/jni_md.h; then
-          JAVA_OS=""
-        else
-          for f in ${JAVA_HOME}/${JAVA_INC}/*/jni_md.h; do
-            if test -f $f; then
-              JAVA_OS=`dirname ${f}`
-              JAVA_OS=`basename ${JAVA_OS}`
-              echo " ${JAVA_OS}"
-            fi
-          done
-          if test "${JAVA_OS}" = "NONE"; then
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: Cannot find jni_md.h in ${JAVA_HOME}/${OS}" >&5
-$as_echo "Cannot find jni_md.h in ${JAVA_HOME}/${OS}" >&6; }
-            as_fn_error $? "You should retry --with-os-type=SUBDIR" "$LINENO" 5
-          fi
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for JDK os include directory" >&5
+$as_echo_n "checking for JDK os include directory... " >&6; }
+    JAVA_OS=NONE
+    if test -f $JAVA_HOME/$JAVA_INC/jni_md.h
+    then
+      JAVA_OS=""
+    else
+      for f in $JAVA_HOME/$JAVA_INC/*/jni_md.h
+      do
+        if test -f $f; then
+            JAVA_OS=`dirname $f`
+            JAVA_OS=`basename $JAVA_OS`
+            echo " $JAVA_OS"
+            break
         fi
+      done
+      if test "x$JAVA_OS" = "xNONE"; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: Cannot find jni_md.h in ${JAVA_HOME}/${OS}" >&5
+$as_echo "Cannot find jni_md.h in ${JAVA_HOME}/${OS}" >&6; }
+        as_fn_error $? "You should retry --with-os-type=SUBDIR" "$LINENO" 5
+      fi
+    fi
 
 fi
 
@@ -2995,40 +2869,6 @@ if test "${enable_openssl+set}" = set; then :
        use_openssl=false;
        { $as_echo "$as_me:${as_lineno-$LINENO}: result: Disabling SSL support..." >&5
 $as_echo "Disabling SSL support..." >&6; }
-       ;;
-  esac
-
-fi
-
-
-# Check whether --enable-ocsp was given.
-if test "${enable_ocsp+set}" = set; then :
-  enableval=$enable_ocsp;
-  case "${enableval}" in
-    yes )
-
-  if test "x$CFLAGS" = "x"; then
-    test "x$silent" != "xyes" && echo "  setting CFLAGS to \"-DHAVE_OPENSSL_OCSP\""
-    CFLAGS="-DHAVE_OPENSSL_OCSP"
-  else
-    apr_addto_bugger="-DHAVE_OPENSSL_OCSP"
-    for i in $apr_addto_bugger; do
-      apr_addto_duplicate="0"
-      for j in $CFLAGS; do
-        if test "x$i" = "x$j"; then
-          apr_addto_duplicate="1"
-          break
-        fi
-      done
-      if test $apr_addto_duplicate = "0"; then
-        test "x$silent" != "xyes" && echo "  adding \"$i\" to CFLAGS"
-        CFLAGS="$CFLAGS $i"
-      fi
-    done
-  fi
-
-       { $as_echo "$as_me:${as_lineno-$LINENO}: result: Enabling OCSP verification support..." >&5
-$as_echo "Enabling OCSP verification support..." >&6; }
        ;;
   esac
 
@@ -3921,8 +3761,8 @@ fi
 
 case "$enable_openssl_version_check" in
 yes|'')
-        { $as_echo "$as_me:${as_lineno-$LINENO}: checking OpenSSL library version" >&5
-$as_echo_n "checking OpenSSL library version... " >&6; }
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking OpenSSL library version >= 1.0.2" >&5
+$as_echo_n "checking OpenSSL library version >= 1.0.2... " >&6; }
         if test "$cross_compiling" = yes; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: assuming target platform has compatible version" >&5
 $as_echo "assuming target platform has compatible version" >&6; }
@@ -3933,14 +3773,11 @@ else
 #include <stdio.h>
 #include <openssl/opensslv.h>
 int main() {
-        if ((OPENSSL_VERSION_NUMBER >= 0x0090701fL &&
-         OPENSSL_VERSION_NUMBER < 0x00908000L) ||
-         OPENSSL_VERSION_NUMBER >= 0x0090801fL)
+        if (OPENSSL_VERSION_NUMBER >= 0x1000200fL)
             return (0);
-    printf("\n\nFound   OPENSSL_VERSION_NUMBER %#010x\n",
+    printf("\n\nFound   OPENSSL_VERSION_NUMBER %#010x (" OPENSSL_VERSION_TEXT ")\n",
         OPENSSL_VERSION_NUMBER);
-    printf("Require OPENSSL_VERSION_NUMBER 0x0090701f or greater (0.9.7a)\n"
-           "Require OPENSSL_VERSION_NUMBER 0x0090801f or greater (0.9.8a)\n\n");
+    printf("Require OPENSSL_VERSION_NUMBER 0x1000200f or greater (1.0.2)\n\n");
         return (1);
 }
 
@@ -4177,6 +4014,226 @@ case $host in
     *)
         ;;
 esac
+
+
+  saved_cflags="$CFLAGS"
+  saved_libs="$LIBS"
+  CFLAGS="$CFLAGS $APR_INCLUDES"
+  LIBS="$LIBS -lapr-1"
+  chk_result=0
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for apr_pool_pre_cleanup_register in -lapr-1" >&5
+$as_echo_n "checking for apr_pool_pre_cleanup_register in -lapr-1... " >&6; }
+if ${ac_cv_lib_apr_1_apr_pool_pre_cleanup_register+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lapr-1  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char apr_pool_pre_cleanup_register ();
+int
+main ()
+{
+return apr_pool_pre_cleanup_register ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_apr_1_apr_pool_pre_cleanup_register=yes
+else
+  ac_cv_lib_apr_1_apr_pool_pre_cleanup_register=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_apr_1_apr_pool_pre_cleanup_register" >&5
+$as_echo "$ac_cv_lib_apr_1_apr_pool_pre_cleanup_register" >&6; }
+if test "x$ac_cv_lib_apr_1_apr_pool_pre_cleanup_register" = xyes; then :
+  chk_result=1
+fi
+
+  CFLAGS="$saved_cflags"
+  LIBS="$saved_libs"
+  if test "$chk_result" != "0"
+  then
+
+  if test "x$CFLAGS" = "x"; then
+    test "x$silent" != "xyes" && echo "  setting CFLAGS to \"-DHAVE_POOL_PRE_CLEANUP\""
+    CFLAGS="-DHAVE_POOL_PRE_CLEANUP"
+  else
+    apr_addto_bugger="-DHAVE_POOL_PRE_CLEANUP"
+    for i in $apr_addto_bugger; do
+      apr_addto_duplicate="0"
+      for j in $CFLAGS; do
+        if test "x$i" = "x$j"; then
+          apr_addto_duplicate="1"
+          break
+        fi
+      done
+      if test $apr_addto_duplicate = "0"; then
+        test "x$silent" != "xyes" && echo "  adding \"$i\" to CFLAGS"
+        CFLAGS="$CFLAGS $i"
+      fi
+    done
+  fi
+
+  fi
+
+
+  saved_cflags="$CFLAGS"
+  saved_libs="$LIBS"
+  CFLAGS="$CFLAGS $APR_INCLUDES"
+  LIBS="$LIBS -lapr-1"
+  chk_result=0
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for apr_pool_create_unmanaged_ex in -lapr-1" >&5
+$as_echo_n "checking for apr_pool_create_unmanaged_ex in -lapr-1... " >&6; }
+if ${ac_cv_lib_apr_1_apr_pool_create_unmanaged_ex+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lapr-1  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char apr_pool_create_unmanaged_ex ();
+int
+main ()
+{
+return apr_pool_create_unmanaged_ex ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_apr_1_apr_pool_create_unmanaged_ex=yes
+else
+  ac_cv_lib_apr_1_apr_pool_create_unmanaged_ex=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_apr_1_apr_pool_create_unmanaged_ex" >&5
+$as_echo "$ac_cv_lib_apr_1_apr_pool_create_unmanaged_ex" >&6; }
+if test "x$ac_cv_lib_apr_1_apr_pool_create_unmanaged_ex" = xyes; then :
+  chk_result=1
+fi
+
+  CFLAGS="$saved_cflags"
+  LIBS="$saved_libs"
+  if test "$chk_result" != "0"
+  then
+
+  if test "x$CFLAGS" = "x"; then
+    test "x$silent" != "xyes" && echo "  setting CFLAGS to \"-DHAVE_POOL_UNMANAGED\""
+    CFLAGS="-DHAVE_POOL_UNMANAGED"
+  else
+    apr_addto_bugger="-DHAVE_POOL_UNMANAGED"
+    for i in $apr_addto_bugger; do
+      apr_addto_duplicate="0"
+      for j in $CFLAGS; do
+        if test "x$i" = "x$j"; then
+          apr_addto_duplicate="1"
+          break
+        fi
+      done
+      if test $apr_addto_duplicate = "0"; then
+        test "x$silent" != "xyes" && echo "  adding \"$i\" to CFLAGS"
+        CFLAGS="$CFLAGS $i"
+      fi
+    done
+  fi
+
+  fi
+
+
+  saved_cflags="$CFLAGS"
+  saved_libs="$LIBS"
+  CFLAGS="$CFLAGS $APR_INCLUDES"
+  LIBS="$LIBS -lapr-1"
+  chk_result=0
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for apr_pollset_wakeup in -lapr-1" >&5
+$as_echo_n "checking for apr_pollset_wakeup in -lapr-1... " >&6; }
+if ${ac_cv_lib_apr_1_apr_pollset_wakeup+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lapr-1  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char apr_pollset_wakeup ();
+int
+main ()
+{
+return apr_pollset_wakeup ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_apr_1_apr_pollset_wakeup=yes
+else
+  ac_cv_lib_apr_1_apr_pollset_wakeup=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_apr_1_apr_pollset_wakeup" >&5
+$as_echo "$ac_cv_lib_apr_1_apr_pollset_wakeup" >&6; }
+if test "x$ac_cv_lib_apr_1_apr_pollset_wakeup" = xyes; then :
+  chk_result=1
+fi
+
+  CFLAGS="$saved_cflags"
+  LIBS="$saved_libs"
+  if test "$chk_result" != "0"
+  then
+
+  if test "x$CFLAGS" = "x"; then
+    test "x$silent" != "xyes" && echo "  setting CFLAGS to \"-DHAVE_POLLSET_WAKEUP\""
+    CFLAGS="-DHAVE_POLLSET_WAKEUP"
+  else
+    apr_addto_bugger="-DHAVE_POLLSET_WAKEUP"
+    for i in $apr_addto_bugger; do
+      apr_addto_duplicate="0"
+      for j in $CFLAGS; do
+        if test "x$i" = "x$j"; then
+          apr_addto_duplicate="1"
+          break
+        fi
+      done
+      if test $apr_addto_duplicate = "0"; then
+        test "x$silent" != "xyes" && echo "  adding \"$i\" to CFLAGS"
+        CFLAGS="$CFLAGS $i"
+      fi
+    done
+  fi
+
+  fi
+
 
 
 

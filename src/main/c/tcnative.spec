@@ -15,19 +15,20 @@
 # limitations under the License.
 #
 
-%define tcnver 1
+%define tcnver 2
 %define aprver 1
 
 Summary: Tomcat Native Java library
 Name: tcnative
-Version: 1.1.33
+Version: 1.2.0
 Release: 1
 License: Apache Software License
 Group: System Environment/Libraries
 URL: http://apr.apache.org/
 Source0: %{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
-BuildPrereq: autoconf, libtool, doxygen, apr-devel >= 0:{version}-{release}, openssl >= 0.9.7
+# XXX The part "apr-devel >= 0:{version}-{release}" is probably wrong
+BuildPrereq: autoconf, libtool, doxygen, apr-devel >= 0:{version}-{release}, openssl >= 1.0.2
 
 %description
 The mission of the Tomcat Native Library (TCN) is to provide a
@@ -37,7 +38,8 @@ contains additional utility interfaces for Java.
 %package devel
 Group: Development/Libraries
 Summary: Tomcat Native development kit
-Requires: tcnative = %{version}-%{release}, apr-devel >= 0:{version}-{release}, openssl-devel >= 0.9.7
+# XXX The part "apr-devel >= 0:{version}-{release}" is probably wrong
+Requires: tcnative = %{version}-%{release}, apr-devel >= 0:{version}-{release}, openssl-devel >= 1.0.2
 
 %description devel
 The mission of the Tomcat Native Library (TCN) is to provide a
@@ -90,8 +92,8 @@ rm -rf $RPM_BUILD_ROOT
 %doc --parents html
 
 %changelog
-* Mon Jan 04 2010 Rainer Jung <rjung@apache.org> 1.0.0-2
-- Decouple apr major lib version form tcnative lib version
+* Mon Jan 04 2010 Rainer Jung <rjung@apache.org> 2.0.0-1
+- update for tcnative 2.0
 * Tue Jun 22 2004 Mladen Turk <mturk@jboss.com> 1.0.0-1
 - update to support v1.0.2 of APR
                                                                                 
