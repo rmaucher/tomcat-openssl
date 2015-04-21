@@ -11,6 +11,7 @@ nbproject/
 *.dylib
 src/main/c/.libs/
 *.lo
+*.class
 
 # Eclipse project files
 .project

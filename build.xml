@@ -32,7 +32,7 @@
         <copy file="${tomcat.files}/jsse/JSSESslContext.java" todir="${tomcat.todir}/jsse" overwrite="true" force="true"/>
     </target>
     <target name="compile" depends="prepare">
-        <javac destdir="${build.java}" srcdir="${java.src}" classpathref="tomcat.cp">
+        <javac destdir="${build.java}" srcdir="${java.src}" classpathref="tomcat.cp" verbose="false" debug="true" debuglevel="lines,vars,source">
         </javac>
         <delete includeEmptyDirs="true">
             <fileset dir="${build.java}/org/apache/tomcat/util"/>
@@ -72,6 +72,18 @@
     <target name="run" depends="deploy">
         <exec executable="../tomcat/output/build/bin/catalina.sh">
             <arg value="run"/>
+        </exec>
+    </target>
+    <target name="debug" depends="deploy">
+        <exec executable="../tomcat/output/build/bin/catalina.sh">
+            <!--<env key="JPDA_SUSPEND" value="yes"/>-->
+            <arg value="jpda"/>
+            <arg value="start"/>
+        </exec>
+    </target>
+    <target name="stop">
+        <exec executable="../tomcat/output/build/bin/catalina.sh">
+            <arg value="stop"/>
         </exec>
     </target>
 <!--    <target name="compile-test" depends="compile">

@@ -343,7 +343,6 @@ public final class OpenSslEngine extends SSLEngine {
     public synchronized SSLEngineResult wrap(
             final ByteBuffer[] srcs, final int offset, final int length, final ByteBuffer dst) throws SSLException {
 
-        logger.error("WRAP");
         // Check to make sure the engine has not been closed
         if (destroyed != 0) {
             return new SSLEngineResult(CLOSED, NOT_HANDSHAKING, 0, 0);
@@ -623,7 +622,6 @@ public final class OpenSslEngine extends SSLEngine {
             closeOutbound();
             closeInbound();
         }
-        logger.error("UNWRAP");
         return new SSLEngineResult(getEngineStatus(), getHandshakeStatus(), bytesConsumed, bytesProduced);
     }
 
@@ -1118,7 +1116,6 @@ public final class OpenSslEngine extends SSLEngine {
 
     @Override
     public synchronized void beginHandshake() throws SSLException {
-        logger.error("akéBFJDFJKSBéKSD");
         if (engineClosed || destroyed != 0) {
             throw ENGINE_CLOSED;
         }
@@ -1155,11 +1152,22 @@ public final class OpenSslEngine extends SSLEngine {
     }
 
     private void handshake() throws SSLException {
-        logger.error("HANDSHAKING");
         int code = SSL.doHandshake(ssl);
         if (code <= 0) {
             // Check for OpenSSL errors caused by the handshake
             long error = SSL.getLastErrorNumber();
+            int error2 = SSL.getError(ssl, code);
+            String errorString = SSL.getErrorString(error2);
+            int i1 = org.apache.tomcat.tomcatopenssl.jni.Error.netosError();
+            int i2 = org.apache.tomcat.tomcatopenssl.jni.Error.osError();
+            String s2 = org.apache.tomcat.tomcatopenssl.jni.Error.strerror(i1);
+            String s3 = org.apache.tomcat.tomcatopenssl.jni.Error.strerror(i2);
+            String s4 = SSL.getCipherForSSL(ssl);
+            String s5 = SSL.getLastError();
+            logger.error(errorString);
+            logger.error(error2);
+            logger.error(s2);
+            logger.error(s3);
             if (OpenSsl.isError(error)) {
                 String err = SSL.getErrorString(error);
                 if (logger.isDebugEnabled()) {
