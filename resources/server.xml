@@ -67,9 +67,13 @@
          Define a non-SSL/TLS HTTP/1.1 Connector on port 8080
     -->
     
+    <Connector port="8080" protocol="org.apache.coyote.http11.Http11Nio2Protocol"
+               connectionTimeout="20000"
+               redirectPort="8443" />
+
 <!-- 
     For testing SSL with JSSE:
-    <Connector port="8080" protocol="org.apache.coyote.http11.Http11Nio2Protocol"
+    <Connector port="8443" protocol="org.apache.coyote.http11.Http11Nio2Protocol"
                 SSLEnabled="true"
                maxThreads="150" scheme="https" secure="true"
                clientAuth="false" sslProtocol="TLS" 
@@ -79,7 +83,7 @@
                redirectPort="8443" />-->
     
     <!--With OpenSSL-->
-    <Connector port="8080" protocol="ch.uninbf.mcs.tomcatopenssl.Http11OpenSSLNio2Protocol"
+    <Connector port="8443" protocol="ch.uninbf.mcs.tomcatopenssl.Http11OpenSSLNio2Protocol"
                maxThreads="150" scheme="https" secure="true"
                clientAuth="false" sslProtocol="TLS" 
 	       keystorePass="password"
